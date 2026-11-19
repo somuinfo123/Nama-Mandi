@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1d5f3a">
+<title>Mandi Rates · ಮಂಡಿ ದರ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ====== Theme ====== */
+:root{
+  color-scheme:light;
+  --bg:#f3f2ec; --surface:#fcfcfb; --surface-2:#eeede6; --border:#dcdad1;
+  --text:#0b0b0b; --text-2:#52514e; --muted:#7a7873;
+  --brand:#1d5f3a; --brand-ink:#ffffff; --brand-soft:#e3efe6;
+  --series-1:#2a78d6; --series-1-soft:rgba(42,120,214,.16); --series-1-light:#a9c8ee;
+  --good:#0a7a2f; --good-bg:#e4f3e8; --warn:#9a5b00; --warn-bg:#fbefd9; --bad:#b3261e; --bad-bg:#fbe5e3;
+  --grid:#e6e4dc;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --border:#363633;
+    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8d86;
+    --brand:#2f8a57; --brand-ink:#ffffff; --brand-soft:#1d3326;
+    --series-1:#3987e5; --series-1-soft:rgba(57,135,229,.22); --series-1-light:#2c4d75;
+    --good:#5cc97b; --good-bg:#1b3022; --warn:#f0b54a; --warn-bg:#352a14; --bad:#f08a80; --bad-bg:#3a1e1b;
+    --grid:#2c2c2a;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font-family:"Noto Sans Kannada","Noto Sans",system-ui,sans-serif;font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px 40px}
+
+header.top{background:var(--brand);color:var(--brand-ink);padding:14px 0 16px}
+header.top .wrap{padding-bottom:0;display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:none}
+header h1{font-size:1.25rem;margin:0;line-height:1.2}
+header p{margin:2px 0 0;font-size:.85rem;opacity:.9}
+.lang{margin-left:auto;display:flex;border:1px solid rgba(255,255,255,.5);border-radius:999px;overflow:hidden;flex:none}
+.lang button{background:none;border:0;color:#fff;padding:6px 12px;font-size:.85rem;cursor:pointer;min-height:36px}
+.lang button[aria-pressed="true"]{background:#fff;color:var(--brand);font-weight:700}
+
+.banner{margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:.9rem}
+.banner.demo{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.banner.err{background:var(--bad-bg);color:var(--bad)}
+.banner.info{background:var(--surface-2);color:var(--text-2)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px}
+.card h2{font-size:1.05rem;margin:0 0 10px}
+.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;font-size:.8rem;margin-right:8px;vertical-align:1px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:8px 14px;min-height:42px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.chip small{color:var(--muted);font-size:.72rem}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip[aria-pressed="true"] small{color:rgba(255,255,255,.85)}
+.linkbtn{background:none;border:0;color:var(--series-1);padding:8px 0;cursor:pointer;text-decoration:underline;font-size:.9rem}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:12px 16px;min-height:48px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn.secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.btn:disabled{opacity:.55;cursor:default}
+select{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:48px;max-width:100%}
+.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.field label{font-size:.82rem;color:var(--text-2)}
+.fc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.fc .box{background:var(--surface-2);border-radius:10px;padding:12px}
+.fc .k{font-size:.78rem;color:var(--text-2)}
+.fc .v{font-size:1.15rem;font-weight:700;font-family:"Noto Sans",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.predict{margin-top:14px;padding:14px;border-radius:12px;background:var(--brand-soft)}
+.predict .big{color:var(--text)}
+.legend i.dash{background:none;border-top:2px dashed var(--series-1);height:0;vertical-align:3px}
+input[type=date],input[type=number]{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:48px;width:100%}
+input[type=text],input[type=password]{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
+
+.status{color:var(--text-2);font-size:.9rem;margin-top:10px;display:flex;gap:8px;align-items:center}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* hero */
+.hero .where{color:var(--text-2);font-size:.9rem;margin-bottom:6px}
+.hero .where b{color:var(--text)}
+.big{font-size:2.4rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;font-family:"Noto Sans",system-ui,sans-serif}
+.big small{font-size:.95rem;font-weight:400;color:var(--text-2);font-family:"Noto Sans Kannada","Noto Sans",sans-serif}
+.sub{color:var(--text-2);font-size:.92rem;margin-top:4px}
+.verdict{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;border-radius:10px;font-weight:600}
+.verdict.high{background:var(--good-bg);color:var(--good)}
+.verdict.mid{background:var(--surface-2);color:var(--text)}
+.verdict.low{background:var(--bad-bg);color:var(--bad)}
+.verdict svg{flex:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--surface-2);border-radius:10px;padding:10px}
+.stat .k{font-size:.75rem;color:var(--text-2);line-height:1.25}
+.stat .v{font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums;font-family:"Noto Sans",system-ui,sans-serif;margin-top:2px}
+.stat .d{font-size:.75rem;font-variant-numeric:tabular-nums}
+.up{color:var(--good)} .down{color:var(--bad)}
+
+.seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;width:max-content;max-width:100%}
+.seg button{border:0;background:var(--surface);padding:8px 14px;min-height:40px;cursor:pointer;font-size:.88rem}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--surface);font-weight:700}
+.charthead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.chartbox{position:relative;height:260px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--text-2);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--series-1);vertical-align:3px;margin-right:6px}
+.legend i.band{height:10px;background:var(--series-1-soft);vertical-align:-1px}
+.legend i.best{height:10px;background:var(--series-1);vertical-align:-1px}
+.legend i.other{height:10px;background:var(--series-1-light);vertical-align:-1px}
+.note{font-size:.8rem;color:var(--muted);margin-top:8px}
+.insight{font-weight:600;margin:0 0 10px}
+
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:9px 6px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-size:.75rem;color:var(--text-2);font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:"Noto Sans",system-ui,sans-serif}
+tr.sel td{font-weight:700}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:var(--surface-2)}
+.tag{font-size:.7rem;background:var(--brand-soft);color:var(--brand);border-radius:6px;padding:1px 6px;margin-left:6px;font-weight:700}
+@media (prefers-color-scheme: dark){.tag{color:#8fd3a8}}
+details summary{cursor:pointer;color:var(--series-1);font-size:.88rem;margin-top:10px}
+footer{color:var(--muted);font-size:.8rem;margin-top:22px;text-align:center}
+footer a{color:var(--muted)}
+.hidden{display:none!important}
+@media (max-width:420px){.big{font-size:2rem}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:span 2}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M12 13c-3 0-5-2-5-5 3 0 5 2 5 5z"/><path d="M12 10c0-3 2-5 5-5 0 3-2 5-5 5z"/><path d="M12 17c-3 0-5-2-5-4 3 0 5 1.5 5 4z"/><path d="M12 15c0-2.5 2-4 5-4 0 2-2 4-5 4z"/></svg>
+    </div>
+    <div>
+      <h1 data-t="title"></h1>
+      <p data-t="tagline"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="kn">ಕನ್ನಡ</button><button data-lang="en">English</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="demoBanner" class="banner demo hidden" data-t="demo"></div>
+  <div id="errBanner" class="banner err hidden"></div>
+
+  <!-- Setup (shown only to the app owner when no API key is configured) -->
+  <section id="setup" class="card hidden">
+    <h2 data-t="setupTitle"></h2>
+    <p class="sub" data-t="setupBody"></p>
+    <div class="row" style="margin-top:10px">
+      <div class="field"><label for="keyIn" data-t="apiKey"></label><input id="keyIn" type="password" autocomplete="off" placeholder="579b464d…"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field"><label for="proxyIn" data-t="proxy"></label><input id="proxyIn" type="text" autocomplete="off" placeholder="https://your-worker.workers.dev/?url="></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="saveKey" data-t="save"></button>
+      <button class="btn secondary" id="tryDemo" data-t="tryDemo"></button>
+    </div>
+  </section>
+
+  <!-- Step 1: crop -->
+  <section id="cropCard" class="card">
+    <h2><span class="step">1</span><span data-t="chooseCrop"></span></h2>
+    <div class="chips" id="cropChips"></div>
+    <button class="linkbtn" id="moreCrops" data-t="moreCrops"></button>
+    <div id="moreWrap" class="hidden" style="margin-top:6px">
+      <select id="moreSel" aria-label="All crops"></select>
+    </div>
+  </section>
+
+  <!-- Step 2: mandi -->
+  <section id="mandiCard" class="card hidden">
+    <h2><span class="step">2</span><span data-t="chooseMandi"></span></h2>
+    <div class="row">
+      <button class="btn" id="locBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>
+        <span data-t="useLoc"></span>
+      </button>
+      <span class="sub" data-t="or"></span>
+      <select id="mandiSel" aria-label="Mandi"></select>
+    </div>
+    <div id="mandiStatus" class="status hidden"></div>
+  </section>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <section class="card" id="planCard">
+      <h2><span class="step">3</span><span data-t="planTitle"></span></h2>
+      <div class="row">
+        <div class="field" style="min-width:160px"><label for="sowIn" data-t="sowDate"></label><input id="sowIn" type="date"></div>
+        <div class="field" style="min-width:140px;max-width:200px"><label for="durIn" data-t="duration"></label><input id="durIn" type="number" min="30" max="400" step="5" inputmode="numeric"></div>
+      </div>
+      <div id="planOut"></div>
+    </section>
+
+    <section class="card hero" id="heroCard"></section>
+
+    <section class="card">
+      <div class="charthead">
+        <h2 style="margin:0" data-t="history"></h2>
+        <div class="seg" id="rangeSeg" role="group">
+          <button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="ALL" data-t="all"></button>
+        </div>
+      </div>
+      <div class="row" id="varietyRow" style="margin-bottom:8px">
+        <label for="varSel" class="sub" data-t="variety"></label>
+        <select id="varSel"></select>
+      </div>
+      <div class="chartbox"><canvas id="histChart" role="img"></canvas></div>
+      <div class="legend"><span><i></i><span data-t="modal"></span></span><span><i class="band"></i><span data-t="minmax"></span></span></div>
+      <p class="note" data-t="modalNote"></p>
+    </section>
+
+    <section class="card">
+      <h2 data-t="season"></h2>
+      <p class="insight" id="seasonInsight"></p>
+      <div class="chartbox" style="height:230px"><canvas id="seasonChart" role="img"></canvas></div>
+      <div class="legend"><span><i class="best"></i><span data-t="bestMonths"></span></span><span><i class="other"></i><span data-t="otherMonths"></span></span></div>
+      <p class="note" data-t="seasonNote"></p>
+      <details><summary data-t="seeNumbers"></summary><div id="seasonTable"></div></details>
+    </section>
+
+    <section class="card">
+      <h2 data-t="nearby"></h2>
+      <p class="note" style="margin-top:0" data-t="nearbyNote"></p>
+      <div id="nearbyTable"></div>
+    </section>
+  </div>
+
+  <footer>
+    <div data-t="source"></div>
+    <div style="margin-top:6px"><button class="linkbtn" id="openSettings" style="color:var(--muted)" data-t="settings"></button></div>
+  </footer>
+</main>
+
+<script>
+/* =====================================================================
+   CONFIG — set your free data.gov.in API key here before hosting.
+   Get one at https://data.gov.in → Sign up → My Account → Generate key.
+   ===================================================================== */
+const CONFIG = {
+  API_KEY: "",                 // e.g. "579b464db66ec23bdd000001xxxxxxxx"
+  PROXY: "",                   // optional, e.g. "https://mandi-proxy.you.workers.dev/?url="
+  RESOURCE: "35985678-0d79-46b4-9ed6-6f13308a1d24", // Variety-wise Daily Market Prices (AGMARKNET)
+  STATE: "Karnataka",
+  CACHE_HOURS: 12
+};
+
+/* ====== Text (Kannada / English) ====== */
+const T = {
+ en:{title:"Mandi Rates",tagline:"Rates at your nearest APMC, with past trends",
+  demo:"DEMO MODE — made-up sample prices to preview the app. These are NOT real rates.",
+  setupTitle:"One-time setup (app owner)",setupBody:"This app reads free government AGMARKNET prices from data.gov.in. Paste your free API key below (data.gov.in → sign up → My Account → API key). To publish for farmers, put the key in CONFIG at the top of the file instead.",
+  apiKey:"data.gov.in API key",proxy:"Proxy URL (optional — only if the browser blocks direct access)",save:"Save & start",tryDemo:"Preview with sample data",
+  chooseCrop:"Choose your crop",moreCrops:"More crops…",chooseMandi:"Choose your mandi (APMC)",useLoc:"Find my nearest mandi",or:"or",pickMandi:"Select mandi…",
+  loadingCrop:"Finding mandis that trade this crop…",loadingHist:"Loading past prices…",locating:"Getting your location…",
+  locDenied:"Location not available. Please choose your mandi from the list.",nearestIs:"Nearest mandi with data: {m} ({d} km)",
+  noCrop:"No reports for this crop in Karnataka. Try another crop.",noData:"No price data found.",
+  latest:"Latest rate at",perQ:"per quintal",perKg:"per kg",range:"Min–Max",reported:"Reported on",
+  stale:"No recent report from this mandi — last report was {n} days ago.",
+  vs12:"Compared to the last 12 months, today's rate is",high:"HIGH",mid:"AVERAGE",low:"LOW",
+  pctl:"higher than {p}% of days",
+  avg30:"30-day average",lastYr:"Same month last year",avg12:"12-month average",
+  history:"Price history",all:"All",variety:"Variety",allVar:"All varieties",modal:"Modal price (most trades)",minmax:"Min–Max range",
+  modalNote:"Modal price = the price at which most lots sold that day. ₹ per quintal (100 kg).",
+  season:"Which month usually pays best?",bestMonths:"Best months",otherMonths:"Other months",
+  seasonNote:"Average pattern from past years at this mandi, scaled to the last 12 months' price level. A guide, not a guarantee — weather, MSP and demand can change it.",
+  seasonIns:"Usually highest in {a}; lowest in {b} (about {g}% difference).",seasonFew:"Not enough history yet to show a reliable monthly pattern.",
+  yearsUsed:"Based on {n} year(s) of data.",seeNumbers:"See the numbers",month:"Month",typical:"Typical ₹/qtl",vsAvg:"vs year avg",
+  nearby:"Nearby mandis — latest rate",nearbyNote:"Tap a mandi to see its history. Check transport cost before travelling.",
+  mandi:"Mandi",dist:"Distance",rate:"Modal ₹/qtl",date:"Date",you:"selected",km:"km",
+  source:"Data: AGMARKNET, Directorate of Marketing & Inspection, Govt. of India (data.gov.in, Open Government Licence). Free app — prices are reports, not offers.",
+  planTitle:"Sowing plan — expected price at harvest",sowDate:"Sowing date",duration:"Days to harvest",
+  harvestOn:"Expected harvest",predAt:"Predicted rate at harvest",likely:"Likely range",vsToday:"vs today's rate",
+  holdTitle:"If you store and sell later",accuracy:"Tested on past data at this mandi: predictions {h} months ahead were within ±{e}% half the time, and within ±{e2}% 8 times in 10.",
+  accFew:"Not enough past data here to test accuracy — treat this as a rough guide.",
+  pastSame:"Actual rate in {m} in past years",planFew:"Need at least 18 months of history at this mandi to predict. Try a bigger nearby mandi.",
+  perennial:"This is a perennial crop — use the monthly pattern below instead.",
+  planWarn:"Prediction = past seasonal pattern + recent trend at this mandi. It cannot know future rain, MSP changes or market shocks. Use it to plan, not as a promise.",
+  actual:"Monthly average (actual)",forecast:"Prediction",band:"Likely range",
+  settings:"Settings",errNet:"Could not reach the price server. Check internet and try again.",errKey:"The API key was rejected. Check the key in settings.",
+  errCors:"Your browser blocked the request to data.gov.in. Set a proxy URL in settings (see README)."},
+ kn:{title:"ಮಂಡಿ ದರ",tagline:"ನಿಮ್ಮ ಹತ್ತಿರದ ಎಪಿಎಂಸಿ ದರ ಮತ್ತು ಹಿಂದಿನ ಪ್ರವೃತ್ತಿ",
+  demo:"ಡೆಮೊ — ಆ್ಯಪ್ ನೋಡಲು ಮಾದರಿ ದರಗಳು ಮಾತ್ರ. ಇವು ನಿಜವಾದ ದರಗಳಲ್ಲ.",
+  setupTitle:"ಒಂದು ಬಾರಿಯ ಸೆಟಪ್ (ಆ್ಯಪ್ ಮಾಲೀಕರಿಗೆ)",setupBody:"ಈ ಆ್ಯಪ್ data.gov.in ನಿಂದ ಉಚಿತ ಸರ್ಕಾರಿ AGMARKNET ದರಗಳನ್ನು ಓದುತ್ತದೆ. ನಿಮ್ಮ ಉಚಿತ API ಕೀ ಇಲ್ಲಿ ಹಾಕಿ. ರೈತರಿಗೆ ಪ್ರಕಟಿಸುವಾಗ ಫೈಲ್‌ನ ಮೇಲ್ಭಾಗದ CONFIG ನಲ್ಲಿ ಕೀ ಹಾಕಿ.",
+  apiKey:"data.gov.in API ಕೀ",proxy:"ಪ್ರಾಕ್ಸಿ URL (ಐಚ್ಛಿಕ)",save:"ಉಳಿಸಿ ಮತ್ತು ಪ್ರಾರಂಭಿಸಿ",tryDemo:"ಮಾದರಿ ದತ್ತಾಂಶದೊಂದಿಗೆ ನೋಡಿ",
+  chooseCrop:"ನಿಮ್ಮ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ",moreCrops:"ಇನ್ನಷ್ಟು ಬೆಳೆಗಳು…",chooseMandi:"ನಿಮ್ಮ ಮಂಡಿ (ಎಪಿಎಂಸಿ) ಆಯ್ಕೆಮಾಡಿ",useLoc:"ನನ್ನ ಹತ್ತಿರದ ಮಂಡಿ ಹುಡುಕಿ",or:"ಅಥವಾ",pickMandi:"ಮಂಡಿ ಆಯ್ಕೆಮಾಡಿ…",
+  loadingCrop:"ಈ ಬೆಳೆಯ ವ್ಯಾಪಾರ ನಡೆಯುವ ಮಂಡಿಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…",loadingHist:"ಹಿಂದಿನ ದರಗಳನ್ನು ತರಲಾಗುತ್ತಿದೆ…",locating:"ನಿಮ್ಮ ಸ್ಥಳ ಪಡೆಯಲಾಗುತ್ತಿದೆ…",
+  locDenied:"ಸ್ಥಳ ಸಿಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಪಟ್ಟಿಯಿಂದ ನಿಮ್ಮ ಮಂಡಿ ಆಯ್ಕೆಮಾಡಿ.",nearestIs:"ದತ್ತಾಂಶ ಇರುವ ಹತ್ತಿರದ ಮಂಡಿ: {m} ({d} ಕಿ.ಮೀ)",
+  noCrop:"ಕರ್ನಾಟಕದಲ್ಲಿ ಈ ಬೆಳೆಯ ವರದಿ ಇಲ್ಲ. ಬೇರೆ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ.",noData:"ದರದ ಮಾಹಿತಿ ಸಿಗಲಿಲ್ಲ.",
+  latest:"ಇತ್ತೀಚಿನ ದರ –",perQ:"ಪ್ರತಿ ಕ್ವಿಂಟಲ್‌ಗೆ",perKg:"ಪ್ರತಿ ಕೆಜಿಗೆ",range:"ಕನಿಷ್ಠ–ಗರಿಷ್ಠ",reported:"ವರದಿ ದಿನಾಂಕ",
+  stale:"ಈ ಮಂಡಿಯಿಂದ ಇತ್ತೀಚಿನ ವರದಿ ಇಲ್ಲ — ಕೊನೆಯ ವರದಿ {n} ದಿನಗಳ ಹಿಂದೆ.",
+  vs12:"ಕಳೆದ 12 ತಿಂಗಳಿಗೆ ಹೋಲಿಸಿದರೆ ಇಂದಿನ ದರ",high:"ಹೆಚ್ಚು",mid:"ಸರಾಸರಿ",low:"ಕಡಿಮೆ",
+  pctl:"{p}% ದಿನಗಳಿಗಿಂತ ಹೆಚ್ಚು",
+  avg30:"30 ದಿನಗಳ ಸರಾಸರಿ",lastYr:"ಕಳೆದ ವರ್ಷ ಇದೇ ತಿಂಗಳು",avg12:"12 ತಿಂಗಳ ಸರಾಸರಿ",
+  history:"ದರದ ಇತಿಹಾಸ",all:"ಎಲ್ಲಾ",variety:"ತಳಿ",allVar:"ಎಲ್ಲಾ ತಳಿಗಳು",modal:"ಮಾದರಿ ದರ (ಹೆಚ್ಚು ವ್ಯಾಪಾರ)",minmax:"ಕನಿಷ್ಠ–ಗರಿಷ್ಠ",
+  modalNote:"ಮಾದರಿ ದರ = ಆ ದಿನ ಹೆಚ್ಚಿನ ಲಾಟ್‌ಗಳು ಮಾರಾಟವಾದ ದರ. ₹ ಪ್ರತಿ ಕ್ವಿಂಟಲ್ (100 ಕೆಜಿ).",
+  season:"ಯಾವ ತಿಂಗಳಲ್ಲಿ ಸಾಮಾನ್ಯವಾಗಿ ಹೆಚ್ಚು ದರ?",bestMonths:"ಉತ್ತಮ ತಿಂಗಳುಗಳು",otherMonths:"ಇತರ ತಿಂಗಳುಗಳು",
+  seasonNote:"ಈ ಮಂಡಿಯ ಹಿಂದಿನ ವರ್ಷಗಳ ಸರಾಸರಿ ಮಾದರಿ, ಕಳೆದ 12 ತಿಂಗಳ ದರ ಮಟ್ಟಕ್ಕೆ ಹೊಂದಿಸಲಾಗಿದೆ. ಇದು ಮಾರ್ಗದರ್ಶನ ಮಾತ್ರ, ಖಾತರಿ ಅಲ್ಲ — ಮಳೆ, ಬೆಂಬಲ ಬೆಲೆ, ಬೇಡಿಕೆಯಿಂದ ಬದಲಾಗಬಹುದು.",
+  seasonIns:"ಸಾಮಾನ್ಯವಾಗಿ {a} ತಿಂಗಳಲ್ಲಿ ಹೆಚ್ಚು; {b} ತಿಂಗಳಲ್ಲಿ ಕಡಿಮೆ (ಸುಮಾರು {g}% ವ್ಯತ್ಯಾಸ).",seasonFew:"ವಿಶ್ವಾಸಾರ್ಹ ತಿಂಗಳ ಮಾದರಿ ತೋರಿಸಲು ಸಾಕಷ್ಟು ಹಳೆಯ ದತ್ತಾಂಶ ಇಲ್ಲ.",
+  yearsUsed:"{n} ವರ್ಷದ ದತ್ತಾಂಶ ಆಧಾರ.",seeNumbers:"ಅಂಕಿಗಳನ್ನು ನೋಡಿ",month:"ತಿಂಗಳು",typical:"ಸಾಮಾನ್ಯ ₹/ಕ್ವಿಂ",vsAvg:"ವರ್ಷದ ಸರಾಸರಿಗೆ",
+  nearby:"ಹತ್ತಿರದ ಮಂಡಿಗಳು — ಇತ್ತೀಚಿನ ದರ",nearbyNote:"ಮಂಡಿಯ ಇತಿಹಾಸ ನೋಡಲು ಒತ್ತಿ. ಪ್ರಯಾಣದ ಮೊದಲು ಸಾಗಣೆ ವೆಚ್ಚ ಲೆಕ್ಕ ಹಾಕಿ.",
+  mandi:"ಮಂಡಿ",dist:"ದೂರ",rate:"ಮಾದರಿ ₹/ಕ್ವಿಂ",date:"ದಿನಾಂಕ",you:"ಆಯ್ಕೆ",km:"ಕಿ.ಮೀ",
+  source:"ದತ್ತಾಂಶ: AGMARKNET, ಮಾರುಕಟ್ಟೆ ಮತ್ತು ತಪಾಸಣೆ ನಿರ್ದೇಶನಾಲಯ, ಭಾರತ ಸರ್ಕಾರ (data.gov.in). ಉಚಿತ ಆ್ಯಪ್ — ದರಗಳು ವರದಿಗಳು ಮಾತ್ರ, ಖರೀದಿ ಆಫರ್ ಅಲ್ಲ.",
+  planTitle:"ಬಿತ್ತನೆ ಯೋಜನೆ — ಕೊಯ್ಲಿನ ಸಮಯದ ಅಂದಾಜು ದರ",sowDate:"ಬಿತ್ತನೆ ದಿನಾಂಕ",duration:"ಕೊಯ್ಲಿಗೆ ದಿನಗಳು",
+  harvestOn:"ಅಂದಾಜು ಕೊಯ್ಲು",predAt:"ಕೊಯ್ಲಿನ ಸಮಯದ ಅಂದಾಜು ದರ",likely:"ಸಂಭವನೀಯ ವ್ಯಾಪ್ತಿ",vsToday:"ಇಂದಿನ ದರಕ್ಕೆ ಹೋಲಿಸಿದರೆ",
+  holdTitle:"ಸಂಗ್ರಹಿಸಿ ನಂತರ ಮಾರಿದರೆ",accuracy:"ಈ ಮಂಡಿಯ ಹಳೆಯ ದತ್ತಾಂಶದಲ್ಲಿ ಪರೀಕ್ಷಿಸಿದಾಗ: {h} ತಿಂಗಳು ಮುಂಚಿನ ಅಂದಾಜು ಅರ್ಧದಷ್ಟು ಬಾರಿ ±{e}% ಒಳಗೆ, 10ರಲ್ಲಿ 8 ಬಾರಿ ±{e2}% ಒಳಗೆ ಇತ್ತು.",
+  accFew:"ನಿಖರತೆ ಪರೀಕ್ಷಿಸಲು ಸಾಕಷ್ಟು ಹಳೆಯ ದತ್ತಾಂಶ ಇಲ್ಲ — ಇದನ್ನು ಸ್ಥೂಲ ಮಾರ್ಗದರ್ಶನವಾಗಿ ನೋಡಿ.",
+  pastSame:"ಹಿಂದಿನ ವರ್ಷಗಳಲ್ಲಿ {m} ತಿಂಗಳ ನಿಜವಾದ ದರ",planFew:"ಅಂದಾಜಿಗೆ ಈ ಮಂಡಿಯಲ್ಲಿ ಕನಿಷ್ಠ 18 ತಿಂಗಳ ದತ್ತಾಂಶ ಬೇಕು. ಹತ್ತಿರದ ದೊಡ್ಡ ಮಂಡಿ ಆಯ್ಕೆಮಾಡಿ.",
+  perennial:"ಇದು ಬಹುವಾರ್ಷಿಕ ಬೆಳೆ — ಕೆಳಗಿನ ತಿಂಗಳ ಮಾದರಿ ನೋಡಿ.",
+  planWarn:"ಅಂದಾಜು = ಈ ಮಂಡಿಯ ಹಿಂದಿನ ಋತುಮಾನದ ಮಾದರಿ + ಇತ್ತೀಚಿನ ಪ್ರವೃತ್ತಿ. ಮುಂದಿನ ಮಳೆ, ಬೆಂಬಲ ಬೆಲೆ ಬದಲಾವಣೆ ಅಥವಾ ಮಾರುಕಟ್ಟೆ ಏರಿಳಿತ ಇದಕ್ಕೆ ತಿಳಿಯದು. ಯೋಜನೆಗೆ ಬಳಸಿ, ಖಾತರಿಯಾಗಿ ಅಲ್ಲ.",
+  actual:"ತಿಂಗಳ ಸರಾಸರಿ (ನಿಜ)",forecast:"ಅಂದಾಜು",band:"ಸಂಭವನೀಯ ವ್ಯಾಪ್ತಿ",
+  settings:"ಸೆಟ್ಟಿಂಗ್ಸ್",errNet:"ದರ ಸರ್ವರ್ ತಲುಪಲಾಗಲಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",errKey:"API ಕೀ ತಿರಸ್ಕರಿಸಲಾಗಿದೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಿ.",
+  errCors:"ಬ್ರೌಸರ್ data.gov.in ವಿನಂತಿಯನ್ನು ತಡೆಯಿತು. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಪ್ರಾಕ್ಸಿ URL ಹಾಕಿ."}
+};
+const MONTHS = {
+  en:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  kn:["ಜನವರಿ","ಫೆಬ್ರವರಿ","ಮಾರ್ಚ್","ಏಪ್ರಿಲ್","ಮೇ","ಜೂನ್","ಜುಲೈ","ಆಗಸ್ಟ್","ಸೆಪ್ಟೆಂಬರ್","ಅಕ್ಟೋಬರ್","ನವೆಂಬರ್","ಡಿಸೆಂಬರ್"]
+};
+
+/* ====== Crops (AGMARKNET names + Kannada) — kw used to auto-match if names differ ====== */
+const CROPS = [
+ {en:"Onion",kn:"ಈರುಳ್ಳಿ",names:["Onion"],kw:["onion"]},
+ {en:"Dry Chilli",kn:"ಒಣ ಮೆಣಸಿನಕಾಯಿ",names:["Dry Chillies"],kw:["dry chilli"]},
+ {en:"Cotton",kn:"ಹತ್ತಿ",names:["Cotton"],kw:["cotton"]},
+ {en:"Groundnut",kn:"ಶೇಂಗಾ",names:["Groundnut"],kw:["groundnut"]},
+ {en:"Jowar",kn:"ಜೋಳ",names:["Jowar(Sorghum)","Jowar (Sorghum)"],kw:["jowar"]},
+ {en:"Bengal Gram",kn:"ಕಡಲೆ",names:["Bengal Gram(Gram)(Whole)"],kw:["bengal gram"]},
+ {en:"Tur / Red Gram",kn:"ತೊಗರಿ",names:["Arhar (Tur/Red Gram)(Whole)"],kw:["arhar","tur"]},
+ {en:"Green Gram",kn:"ಹೆಸರು",names:["Green Gram (Moong)(Whole)"],kw:["green gram","moong"]},
+ {en:"Maize",kn:"ಮೆಕ್ಕೆಜೋಳ",names:["Maize"],kw:["maize"]},
+ {en:"Wheat",kn:"ಗೋಧಿ",names:["Wheat"],kw:["wheat"]},
+ {en:"Sunflower",kn:"ಸೂರ್ಯಕಾಂತಿ",names:["Sunflower"],kw:["sunflower"]},
+ {en:"Soyabean",kn:"ಸೋಯಾಬೀನ್",names:["Soyabean"],kw:["soya"]},
+ {en:"Safflower",kn:"ಕುಸುಬೆ",names:["Safflower"],kw:["safflower"]},
+ {en:"Tomato",kn:"ಟೊಮೇಟೊ",names:["Tomato"],kw:["tomato"]},
+ {en:"Potato",kn:"ಆಲೂಗಡ್ಡೆ",names:["Potato"],kw:["potato"]},
+ {en:"Paddy",kn:"ಭತ್ತ",names:["Paddy(Dhan)(Common)"],kw:["paddy"]},
+ {en:"Ragi",kn:"ರಾಗಿ",names:["Ragi (Finger Millet)"],kw:["ragi"]},
+ {en:"Arecanut",kn:"ಅಡಿಕೆ",names:["Arecanut(Betelnut/Supari)"],kw:["arecanut"]},
+ {en:"Copra",kn:"ಕೊಬ್ಬರಿ",names:["Copra"],kw:["copra"]},
+ {en:"Turmeric",kn:"ಅರಿಶಿನ",names:["Turmeric"],kw:["turmeric"]}
+];
+
+/* Typical sowing→harvest days (editable by the farmer in the app). 0 = perennial / not sown seasonally. */
+const DUR = {"Onion":120,"Dry Chilli":160,"Cotton":170,"Groundnut":110,"Jowar":110,"Bengal Gram":100,"Tur / Red Gram":160,
+  "Green Gram":70,"Maize":110,"Wheat":115,"Sunflower":95,"Soyabean":100,"Safflower":130,"Tomato":90,"Potato":100,
+  "Paddy":125,"Ragi":115,"Arecanut":0,"Copra":0,"Turmeric":240};
+
+/* ====== Karnataka APMC towns: [aliases], lat, lon (approximate town centres) ====== */
+const TOWNS = [
+ [["Hubli","Hubballi","Amaragol"],15.36,75.12],[["Dharwad","Dharwar"],15.46,75.01],[["Annigeri"],15.43,75.43],[["Kundgol","Kundagol"],15.26,75.25],
+ [["Kalghatgi","Kalaghatagi"],15.18,74.97],[["Navalgund"],15.56,75.37],[["Alnavar"],15.43,74.74],
+ [["Gadag","Betageri"],15.43,75.63],[["Ron"],15.70,75.73],[["Nargund","Nargunda","Naragund"],15.72,75.38],[["Laxmeshwar","Lakshmeshwar"],15.13,75.47],
+ [["Mundargi","Mundaragi"],15.21,75.88],[["Gajendragad","Gajendragarh"],15.73,75.97],
+ [["Haveri"],14.79,75.40],[["Ranebennur","Ranibennur","Ranebennuru"],14.62,75.62],[["Byadgi","Byadagi"],14.67,75.49],[["Savanur"],14.97,75.34],
+ [["Hirekerur"],14.46,75.39],[["Hangal"],14.76,75.12],[["Shiggaon"],14.99,75.22],
+ [["Belgaum","Belagavi"],15.85,74.50],[["Bailhongal"],15.81,74.86],[["Gokak"],16.17,74.83],[["Ramdurg","Ramadurga"],15.95,75.30],
+ [["Savadatti","Saundatti"],15.76,75.12],[["Athani"],16.73,75.06],[["Chikodi","Chikkodi"],16.43,74.59],[["Sankeshwar"],16.27,74.48],
+ [["Hukkeri"],16.23,74.60],[["Nippani"],16.40,74.38],[["Khanapur"],15.64,74.51],[["Kittur"],15.60,74.78],[["Raibag"],16.49,74.78],
+ [["Bijapur","Vijayapura"],16.83,75.71],[["Indi"],17.17,75.96],[["Sindagi","Sindgi"],16.92,76.23],[["Basavana Bagewadi","Bagewadi"],16.58,75.97],
+ [["Talikot","Talikoti"],16.47,76.31],[["Muddebihal"],16.34,76.13],
+ [["Bagalkot"],16.18,75.70],[["Jamkhandi"],16.50,75.29],[["Mudhol"],16.33,75.28],[["Badami"],15.92,75.68],[["Hungund"],16.06,76.06],
+ [["Ilkal","Ilkal"],15.96,76.11],[["Bilagi"],16.35,75.62],[["Rabkavi","Banahatti"],16.47,75.11],[["Mahalingapur"],16.39,75.11],
+ [["Gulbarga","Kalaburagi","Kalburgi"],17.33,76.83],[["Afzalpur"],17.20,76.36],[["Aland"],17.57,76.57],[["Sedam"],17.18,77.28],
+ [["Chittapur"],17.12,77.08],[["Jewargi"],17.01,76.77],[["Shahapur"],16.70,76.84],[["Yadgir","Yadgiri"],16.77,77.14],[["Shorapur","Surpur"],16.52,76.76],
+ [["Bidar"],17.91,77.52],[["Basavakalyan"],17.87,76.95],[["Humnabad"],17.77,77.13],[["Bhalki"],18.04,77.21],
+ [["Raichur"],16.20,77.36],[["Sindhanur","Sindhanoor"],15.77,76.76],[["Manvi"],15.99,77.05],[["Lingasugur","Lingsugur"],16.16,76.52],
+ [["Koppal"],15.35,76.15],[["Gangavathi","Gangavati"],15.43,76.53],[["Kushtagi"],15.76,76.19],[["Yelburga","Yelbarga"],15.61,76.01],
+ [["Bellary","Ballari"],15.14,76.92],[["Hospet","Hosapete"],15.27,76.39],[["Siruguppa"],15.63,76.90],[["Kudligi"],14.90,76.39],
+ [["Hadagali","Huvinahadagali"],15.02,75.93],[["Hagaribommanahalli","H.B.Halli"],15.04,76.20],
+ [["Davangere","Davanagere"],14.46,75.92],[["Harihar"],14.52,75.81],[["Channagiri"],14.02,75.93],[["Honnali"],14.24,75.65],[["Jagalur"],14.52,76.34],
+ [["Chitradurga"],14.23,76.40],[["Challakere"],14.31,76.65],[["Hiriyur"],13.94,76.62],[["Holalkere"],14.04,76.18],[["Hosadurga"],13.80,76.29],
+ [["Shimoga","Shivamogga"],13.93,75.57],[["Bhadravathi","Bhadravati"],13.84,75.70],[["Sagar"],14.17,75.03],[["Shikaripura","Shikaripur"],14.27,75.35],
+ [["Soraba"],14.38,75.09],[["Hosanagar"],13.91,75.07],[["Thirthahalli","Tirthahalli"],13.69,75.24],
+ [["Tumkur","Tumakuru"],13.34,77.10],[["Tiptur"],13.26,76.48],[["Gubbi"],13.31,76.94],[["Sira"],13.74,76.90],[["Madhugiri"],13.66,77.21],
+ [["Pavagada"],14.10,77.28],[["Kunigal"],13.02,77.03],[["Chikkanayakanahalli","Huliyar"],13.42,76.62],
+ [["Bangalore","Bengaluru","Binny Mill","Yeshwanthpur","K.R. Market"],12.97,77.59],[["Doddaballapur"],13.29,77.54],[["Hoskote","Hosakote"],13.07,77.80],
+ [["Ramanagara","Ramanagar"],12.72,77.28],[["Channapatna"],12.65,77.21],[["Kanakapura"],12.55,77.42],
+ [["Kolar"],13.14,78.13],[["Chintamani"],13.40,78.06],[["Chikkaballapur","Chickballapur"],13.43,77.73],[["Gowribidanoor","Gauribidanur"],13.61,77.52],
+ [["Bagepalli"],13.78,77.79],[["Mulbagal"],13.16,78.39],[["Srinivasapur"],13.34,78.21],[["Malur"],13.00,77.94],
+ [["Mysore","Mysuru","Bandipalya"],12.30,76.64],[["Nanjangud"],12.12,76.68],[["Hunsur"],12.31,76.29],[["K.R.Nagar","Krishnarajanagar"],12.44,76.38],
+ [["T.Narasipura","Narasipura"],12.21,76.90],[["Mandya"],12.52,76.90],[["Maddur"],12.58,77.04],[["Pandavapura"],12.50,76.67],[["Malavalli"],12.39,77.06],
+ [["Nagamangala"],12.82,76.75],[["Chamarajanagar","Chamaraj Nagar","Chamrajnagar"],11.92,76.94],[["Kollegal"],12.15,77.11],[["Gundlupet"],11.81,76.69],
+ [["Hassan"],13.01,76.10],[["Arsikere"],13.31,76.26],[["Channarayapatna"],12.90,76.39],[["Holenarasipura"],12.79,76.24],[["Belur"],13.17,75.87],
+ [["Sakaleshpura","Sakleshpur"],12.94,75.79],[["Chikmagalur","Chikkamagaluru","Chickmagalur"],13.32,75.77],[["Kadur"],13.55,76.01],
+ [["Tarikere"],13.71,75.81],[["Birur"],13.60,75.97],[["Koppa"],13.53,75.36],
+ [["Mangalore","Mangaluru","Dakshin Kannad"],12.91,74.86],[["Puttur"],12.76,75.20],[["Bantwal"],12.89,75.03],[["Belthangady"],12.99,75.30],
+ [["Udupi"],13.34,74.75],[["Kundapur","Kundapura"],13.63,74.69],[["Karkala"],13.21,74.99],
+ [["Madikeri","Kodagu"],12.42,75.74],[["Somwarpet"],12.60,75.85],[["Gonikoppal"],12.18,75.93],
+ [["Sirsi"],14.62,74.84],[["Yellapur"],14.96,74.71],[["Karwar","Uttar Kannad"],14.81,74.13],[["Kumta"],14.43,74.42],[["Honnavar"],14.28,74.44],
+ [["Haliyal"],15.33,74.76],[["Mundgod"],14.97,75.04],[["Siddapur"],14.34,74.89],[["Bhatkal"],13.97,74.56]
+];
+
+/* ====== State ====== */
+const LS = {
+  get(k,d){try{const v=localStorage.getItem("mr_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("mr_"+k,JSON.stringify(v))}catch(e){}}
+};
+const S = {
+  lang: LS.get("lang","kn"),
+  demo: location.hash==="#demo",
+  key: CONFIG.API_KEY || LS.get("key",""),
+  proxy: CONFIG.PROXY || LS.get("proxy",""),
+  fieldMap:null, filterSuffix:null,
+  crop:null, commodity:null, markets:[], user:LS.get("user",null),
+  market:null, recs:[], variety:"ALL", range:"1Y", charts:{}
+};
+const $ = s=>document.querySelector(s);
+const t = (k,v)=>{let s=(T[S.lang][k]??T.en[k]??k);if(v)for(const[a,b]of Object.entries(v))s=s.replace("{"+a+"}",b);return s};
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const inr = n=>n==null||isNaN(n)?"—":"₹"+Math.round(n).toLocaleString("en-IN");
+const DAY = 86400000;
+
+/* ====== Data access ====== */
+const normKey = k=>String(k).toLowerCase().replace(/_x0020_/g,"_").replace(/\s+/g,"_");
+function parseDate(s){
+  if(!s) return null; s=String(s).trim();
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return Date.UTC(+m[1],m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/); if(m) return Date.UTC(+m[3],m[2]-1,+m[1]);
+  const d=Date.parse(s); return isNaN(d)?null:d;
+}
+function normRec(r){
+  const o={}; for(const k in r) o[normKey(k)]=r[k];
+  return {state:o.state,district:o.district,market:o.market,commodity:o.commodity,variety:o.variety||"—",
+    date:parseDate(o.arrival_date),min:+o.min_price||null,max:+o.max_price||null,modal:+o.modal_price||null};
+}
+const memCache = new Map();
+function cacheGet(u){
+  if(memCache.has(u)) return memCache.get(u);
+  const c=LS.get("c:"+u,null); if(c && Date.now()-c.t < CONFIG.CACHE_HOURS*3600e3){memCache.set(u,c.v);return c.v}
+  return null;
+}
+function cachePut(u,v){memCache.set(u,v); const s=JSON.stringify(v); if(s.length<400000) LS.set("c:"+u,{t:Date.now(),v});}
+
+async function rawGet({limit=1,offset=0,filters={}}){
+  if(S.demo) return DEMO.get({limit,offset,filters});
+  const u=new URL("https://api.data.gov.in/resource/"+CONFIG.RESOURCE);
+  u.searchParams.set("api-key",S.key); u.searchParams.set("format","json");
+  u.searchParams.set("limit",limit); u.searchParams.set("offset",offset);
+  for(const [k,v] of Object.entries(filters)){
+    const f=(S.fieldMap&&S.fieldMap[k])||k;
+    u.searchParams.set(`filters[${f}${S.filterSuffix||""}]`,v);
+  }
+  const href=u.toString(); const ck=href.replace(S.key,"KEY");
+  const hit=cacheGet(ck); if(hit) return hit;
+  const url = S.proxy ? S.proxy+encodeURIComponent(href) : href;
+  let res;
+  try{
+    const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),45000);
+    res=await fetch(url,{signal:ctl.signal}); clearTimeout(tm);
+  }catch(e){ throw new Error(S.proxy?"errNet":"errCors"); }
+  if(res.status===401||res.status===403) throw new Error("errKey");
+  if(!res.ok) throw new Error("errNet");
+  const j=await res.json();
+  if(j.status && j.status!=="ok" && !j.records) throw new Error(/key/i.test(j.message||"")?"errKey":"errNet");
+  const out={total:+j.total||0,fields:(j.field||[]).map(f=>f.id),records:(j.records||[])};
+  cachePut(ck,out); return out;
+}
+
+async function init(){
+  if(S.fieldMap) return;
+  const r=await rawGet({limit:1});
+  const fm={}; const ids=r.fields.length?r.fields:Object.keys(r.records[0]||{});
+  for(const id of ids) fm[normKey(id)]=id;
+  S.fieldMap=fm;
+  // Detect filter syntax: plain field vs field.keyword
+  for(const suf of ["",".keyword"]){
+    S.filterSuffix=suf;
+    const f=await rawGet({limit:1,filters:{state:CONFIG.STATE}});
+    const st=f.records[0]&&normRec(f.records[0]).state;
+    if(f.total>0 && f.total<r.total && String(st).toLowerCase()===CONFIG.STATE.toLowerCase()) return;
+  }
+  S.filterSuffix="";
+}
+
+/* Fetch the most recent `max` records matching filters (records are appended over time, so read from the end). */
+async function fetchRecent(filters,max,onProgress){
+  const head=await rawGet({limit:1,filters});
+  const total=head.total; if(!total) return [];
+  const start=Math.max(0,total-max), PAGE=1000, offs=[];
+  for(let o=start;o<total;o+=PAGE) offs.push(o);
+  const out=[]; let done=0;
+  for(let i=0;i<offs.length;i+=3){
+    const batch=await Promise.all(offs.slice(i,i+3).map(o=>rawGet({limit:Math.min(PAGE,total-o),offset:o,filters})));
+    for(const b of batch) out.push(...b.records.map(normRec));
+    done+=batch.length; onProgress&&onProgress(done/offs.length);
+  }
+  return out.filter(r=>r.date&&r.modal>0);
+}
+
+/* ====== Geo ====== */
+const nm = s=>String(s||"").toLowerCase().replace(/[^a-z]/g,"");
+function locate(market,district){
+  const tryName=(name)=>{
+    const m=nm(name); if(!m) return null;
+    const first=nm(String(name).split(/[\s(,\-\/]/)[0]);
+    let best=null,score=0;
+    for(const [al,lat,lon] of TOWNS) for(const a0 of al){
+      const a=nm(a0); let sc=0;
+      if(a.length>=3 && m.includes(a)) sc=a.length+10;
+      else if(first.length>=5 && a.length>=5 && first.slice(0,5)===a.slice(0,5)) sc=5;
+      if(sc>score){score=sc;best={lat,lon}}
+    }
+    return best;
+  };
+  return tryName(market)||tryName(district);
+}
+function km(a,b){
+  const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lon-a.lon);
+  const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+/* ====== Stats helpers ====== */
+const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function dailySeries(recs){
+  const by=new Map();
+  for(const r of recs){ if(!by.has(r.date)) by.set(r.date,[]); by.get(r.date).push(r); }
+  return [...by.entries()].sort((a,b)=>a[0]-b[0]).map(([d,rs])=>({
+    date:d, modal:median(rs.map(r=>r.modal)),
+    min:Math.min(...rs.map(r=>r.min||r.modal)), max:Math.max(...rs.map(r=>r.max||r.modal))
+  }));
+}
+function latestByMarket(recs){
+  const by=new Map();
+  for(const r of recs){
+    const k=r.market; const cur=by.get(k);
+    if(!cur) by.set(k,{market:r.market,district:r.district,date:r.date,vals:[r.modal],count:1});
+    else{ cur.count++; if(r.date>cur.date){cur.date=r.date;cur.vals=[r.modal]} else if(r.date===cur.date) cur.vals.push(r.modal); }
+  }
+  return [...by.values()].map(m=>({...m,modal:median(m.vals),geo:locate(m.market,m.district)}));
+}
+
+/* ====== UI: language ====== */
+function applyLang(){
+  document.documentElement.lang=S.lang;
+  document.querySelectorAll("[data-t]").forEach(el=>el.textContent=t(el.dataset.t));
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
+  renderCrops(); renderMandiSelect();
+  if(S.market && S.recs.length) renderResults();
+}
+document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>{S.lang=b.dataset.lang;LS.set("lang",S.lang);applyLang()});
+
+function showErr(k){const e=$("#errBanner"); if(!k){e.classList.add("hidden");return} e.textContent=T[S.lang][k]?t(k):k; e.classList.remove("hidden");}
+function status(el,msg,spin=true){el.classList.remove("hidden");el.innerHTML=(spin?'<span class="spin"></span>':"")+"<span>"+esc(msg)+"</span>";}
+
+/* ====== Step 1: crops ====== */
+function cropLabel(c){return S.lang==="kn"?c.kn:c.en}
+function renderCrops(){
+  const box=$("#cropChips"); box.innerHTML="";
+  CROPS.forEach((c,i)=>{
+    const b=document.createElement("button"); b.className="chip";
+    b.setAttribute("aria-pressed",S.crop===c);
+    b.innerHTML=`<span>${esc(cropLabel(c))}</span>${S.lang==="kn"?`<small>${esc(c.en)}</small>`:""}`;
+    b.onclick=()=>selectCrop(c); box.appendChild(b);
+  });
+}
+$("#moreCrops").onclick=async()=>{
+  $("#moreWrap").classList.remove("hidden");
+  const sel=$("#moreSel"); sel.innerHTML=`<option>…</option>`;
+  try{
+    await init();
+    const recs=await fetchRecent({state:CONFIG.STATE},5000);
+    const names=[...new Set(recs.map(r=>r.commodity))].sort();
+    sel.innerHTML=`<option value="">${esc(t("chooseCrop"))}…</option>`+names.map(n=>`<option>${esc(n)}</option>`).join("");
+    sel.onchange=()=>{ if(sel.value) selectCrop({en:sel.value,kn:sel.value,names:[sel.value],kw:[]}); };
+  }catch(e){showErr(e.message)}
+};
+
+async function resolveCommodity(c){
+  for(const n of c.names){ const r=await rawGet({limit:1,filters:{state:CONFIG.STATE,commodity:n}}); if(r.total>0) return n; }
+  if(!c.kw.length) return null;
+  const recs=await fetchRecent({state:CONFIG.STATE},5000);
+  const names=[...new Set(recs.map(r=>r.commodity))];
+  return names.find(n=>c.kw.some(k=>n.toLowerCase().includes(k)))||null;
+}
+
+async function selectCrop(c){
+  S.crop=c; S.market=null; S.recs=[]; showErr(null); $("#durIn").value=DUR[c.en]||"";
+  renderCrops(); $("#results").classList.add("hidden");
+  $("#mandiCard").classList.remove("hidden");
+  const st=$("#mandiStatus"); status(st,t("loadingCrop"));
+  $("#mandiSel").disabled=true; $("#locBtn").disabled=true;
+  try{
+    await init();
+    const name=await resolveCommodity(c);
+    if(!name){ status(st,t("noCrop"),false); return; }
+    S.commodity=name;
+    const recs=await fetchRecent({state:CONFIG.STATE,commodity:name},6000,p=>status(st,t("loadingCrop")+" "+Math.round(p*100)+"%"));
+    S.markets=latestByMarket(recs).sort((a,b)=>a.market.localeCompare(b.market));
+    if(!S.markets.length){ status(st,t("noCrop"),false); return; }
+    st.classList.add("hidden");
+    renderMandiSelect();
+    $("#mandiSel").disabled=false; $("#locBtn").disabled=false;
+    $("#mandiCard").scrollIntoView({behavior:"smooth",block:"start"});
+    // Auto-pick: nearest if we know location, else last used mandi
+    if(S.user) pickNearest();
+    else { const last=LS.get("market",null); if(last && S.markets.some(m=>m.market===last)) selectMarket(last); }
+  }catch(e){ st.classList.add("hidden"); showErr(e.message); }
+}
+
+/* ====== Step 2: mandi ====== */
+function renderMandiSelect(){
+  const sel=$("#mandiSel"); if(!S.markets.length){sel.innerHTML=`<option>${esc(t("pickMandi"))}</option>`;return}
+  sel.innerHTML=`<option value="">${esc(t("pickMandi"))}</option>`+S.markets.map(m=>{
+    const d=S.user&&m.geo?` · ${Math.round(km(S.user,m.geo))} ${t("km")}`:"";
+    return `<option value="${esc(m.market)}" ${S.market===m.market?"selected":""}>${esc(m.market)} (${esc(m.district)})${d}</option>`;
+  }).join("");
+}
+$("#mandiSel").onchange=e=>{ if(e.target.value) selectMarket(e.target.value); };
+$("#locBtn").onclick=()=>{
+  const st=$("#mandiStatus");
+  if(!navigator.geolocation){status(st,t("locDenied"),false);return}
+  status(st,t("locating"));
+  navigator.geolocation.getCurrentPosition(p=>{
+    S.user={lat:p.coords.latitude,lon:p.coords.longitude}; LS.set("user",S.user);
+    renderMandiSelect(); pickNearest();
+  },()=>status(st,t("locDenied"),false),{enableHighAccuracy:false,timeout:15000,maximumAge:3600e3});
+};
+function pickNearest(){
+  const newest=Math.max(...S.markets.map(m=>m.date));
+  const cand=S.markets.filter(m=>m.geo);
+  const active=cand.filter(m=>newest-m.date<120*DAY);
+  const pool=(active.length?active:cand).map(m=>({m,d:km(S.user,m.geo)})).sort((a,b)=>a.d-b.d);
+  if(!pool.length){status($("#mandiStatus"),t("locDenied"),false);return}
+  status($("#mandiStatus"),t("nearestIs",{m:pool[0].m.market,d:Math.round(pool[0].d)}),false);
+  selectMarket(pool[0].m.market);
+}
+
+async function selectMarket(name){
+  S.market=name; LS.set("market",name); S.variety="ALL"; renderMandiSelect(); showErr(null);
+  const st=$("#mandiStatus"); const prev=st.textContent;
+  status(st,t("loadingHist"));
+  try{
+    S.recs=await fetchRecent({state:CONFIG.STATE,commodity:S.commodity,market:name},15000,p=>status(st,t("loadingHist")+" "+Math.round(p*100)+"%"));
+    if(prev && !/%|…/.test(prev)) status(st,prev,false); else st.classList.add("hidden");
+    if(!S.recs.length){status(st,t("noData"),false);return}
+    $("#results").classList.remove("hidden");
+    renderResults();
+    $("#heroCard").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){st.classList.add("hidden");showErr(e.message)}
+}
+
+/* ====== Results ====== */
+function filteredRecs(){return S.variety==="ALL"?S.recs:S.recs.filter(r=>r.variety===S.variety)}
+const fmtDate=(d,short)=>{const x=new Date(d);const M=MONTHS[S.lang][x.getUTCMonth()];return short?`${x.getUTCDate()} ${M} ${String(x.getUTCFullYear()).slice(2)}`:`${x.getUTCDate()} ${M} ${x.getUTCFullYear()}`};
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+function renderResults(){
+  // variety selector
+  const vc={}; S.recs.forEach(r=>vc[r.variety]=(vc[r.variety]||0)+1);
+  const vars=Object.keys(vc).sort((a,b)=>vc[b]-vc[a]);
+  $("#varietyRow").classList.toggle("hidden",vars.length<2);
+  $("#varSel").innerHTML=`<option value="ALL">${esc(t("allVar"))}</option>`+vars.map(v=>`<option ${S.variety===v?"selected":""}>${esc(v)}</option>`).join("");
+  $("#varSel").onchange=e=>{S.variety=e.target.value;renderResults()};
+
+  const ser=dailySeries(filteredRecs()); if(!ser.length) return;
+  renderPlan(ser); renderHero(ser); renderHistory(ser); renderSeason(ser); renderNearby();
+}
+
+function renderHero(ser){
+  const last=ser[ser.length-1];
+  const yr=ser.filter(p=>p.date>last.date-365*DAY);
+  const d30=ser.filter(p=>p.date>last.date-30*DAY);
+  const ly=new Date(last.date); const lyM=ly.getUTCMonth(), lyY=ly.getUTCFullYear()-1;
+  const lastYr=ser.filter(p=>{const x=new Date(p.date);return x.getUTCMonth()===lyM&&x.getUTCFullYear()===lyY});
+  const avg30=mean(d30.map(p=>p.modal)), avg12=mean(yr.map(p=>p.modal)), avgLy=lastYr.length?mean(lastYr.map(p=>p.modal)):null;
+  const pct=Math.round(100*yr.filter(p=>p.modal<last.modal).length/Math.max(1,yr.length));
+  const level=pct>=67?"high":pct<=33?"low":"mid";
+  const ago=Math.floor((Date.now()-last.date)/DAY);
+  const crop=S.crop?cropLabel(S.crop):S.commodity;
+  const diff=(v)=>{if(v==null)return"";const p=(last.modal-v)/v*100;const cls=p>=0?"up":"down";return `<div class="d ${cls}">${p>=0?"▲":"▼"} ${Math.abs(p).toFixed(0)}% ${S.lang==="kn"?"ಇಂದು":"today vs"}</div>`};
+  const icon={high:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+    low:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
+    mid:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>'}[level];
+  $("#heroCard").innerHTML=`
+    <div class="where">${esc(crop)} · ${esc(t("latest"))} <b>${esc(S.market)}</b>${S.variety!=="ALL"?" · "+esc(S.variety):""}</div>
+    <div class="big">${inr(last.modal)} <small>${esc(t("perQ"))}</small></div>
+    <div class="sub">≈ ${inr(last.modal/100)} ${esc(t("perKg"))} · ${esc(t("range"))}: ${inr(last.min)} – ${inr(last.max)} · ${esc(t("reported"))}: ${esc(fmtDate(last.date))}</div>
+    ${ago>21?`<div class="banner info">${esc(t("stale",{n:ago}))}</div>`:""}
+    <div class="verdict ${level}">${icon}<span>${esc(t("vs12"))}: ${esc(t(level))}</span></div>
+    <div class="sub" style="margin-top:4px">${esc(t("pctl",{p:pct}))}</div>
+    <div class="stats">
+      <div class="stat"><div class="k">${esc(t("avg30"))}</div><div class="v">${inr(avg30)}</div>${diff(avg30)}</div>
+      <div class="stat"><div class="k">${esc(t("avg12"))}</div><div class="v">${inr(avg12)}</div>${diff(avg12)}</div>
+      <div class="stat"><div class="k">${esc(t("lastYr"))}</div><div class="v">${inr(avgLy)}</div>${diff(avgLy)}</div>
+    </div>`;
+}
+
+function weekly(ser){
+  const by=new Map();
+  for(const p of ser){const w=Math.floor((p.date/DAY+3)/7);if(!by.has(w))by.set(w,[]);by.get(w).push(p)}
+  return [...by.values()].map(ps=>({date:ps[ps.length-1].date,modal:mean(ps.map(p=>p.modal)),min:mean(ps.map(p=>p.min)),max:mean(ps.map(p=>p.max))}));
+}
+function renderHistory(ser){
+  document.querySelectorAll("#rangeSeg button").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.r===S.range);b.onclick=()=>{S.range=b.dataset.r;renderHistory(dailySeries(filteredRecs()))}});
+  const last=ser[ser.length-1].date;
+  const span={"6M":183,"1Y":366,"3Y":1096,"ALL":1e6}[S.range];
+  let pts=ser.filter(p=>p.date>last-span*DAY);
+  if(span>366) pts=weekly(pts);
+  const labels=pts.map(p=>fmtDate(p.date,true));
+  const c1=css("--series-1"), band=css("--series-1-soft"), grid=css("--grid"), ink=css("--text-2");
+  S.charts.h&&S.charts.h.destroy();
+  S.charts.h=new Chart($("#histChart"),{
+    type:"line",
+    data:{labels,datasets:[
+      {label:t("minmax")+" max",data:pts.map(p=>p.max),borderWidth:0,pointRadius:0,fill:"+1",backgroundColor:band,tension:.25},
+      {label:t("minmax")+" min",data:pts.map(p=>p.min),borderWidth:0,pointRadius:0,fill:false,tension:.25},
+      {label:t("modal"),data:pts.map(p=>p.modal),borderColor:c1,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css("--surface"),pointHoverBackgroundColor:c1,tension:.25,fill:false}
+    ]},
+    options:{maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false},tooltip:{displayColors:false,callbacks:{
+        title:i=>i[0].label,
+        label:i=>i.datasetIndex===2?`${t("modal")}: ${inr(i.raw)}`:null,
+        afterBody:i=>{const k=i[0].dataIndex;return `${t("range")}: ${inr(pts[k].min)} – ${inr(pts[k].max)}`}}}},
+      scales:{x:{grid:{display:false},ticks:{color:ink,maxTicksLimit:5,maxRotation:0,autoSkip:true}},
+              y:{grid:{color:grid},border:{display:false},ticks:{color:ink,maxTicksLimit:5,callback:v=>"₹"+Number(v).toLocaleString("en-IN")}}}}
+  });
+  $("#histChart").setAttribute("aria-label",`${t("history")}: ${S.market}`);
+}
+
+function seasonal(ser){
+  const ym=new Map();
+  for(const p of ser){const d=new Date(p.date);const k=d.getUTCFullYear()*12+d.getUTCMonth();if(!ym.has(k))ym.set(k,[]);ym.get(k).push(p.modal)}
+  const byYear=new Map();
+  for(const [k,v] of ym){const y=Math.floor(k/12),m=k%12;if(!byYear.has(y))byYear.set(y,{});byYear.get(y)[m]=mean(v)}
+  const idx=Array.from({length:12},()=>[]); let years=0;
+  for(const [y,ms] of byYear){
+    const vals=Object.values(ms); if(vals.length<6) continue; years++;
+    const a=mean(vals); for(const m in ms) idx[m].push(ms[m]/a);
+  }
+  const lastD=ser[ser.length-1].date;
+  const level=mean(ser.filter(p=>p.date>lastD-365*DAY).map(p=>p.modal));
+  const months=idx.map((a,m)=>({m,i:a.length?mean(a):null,n:a.length}));
+  const have=months.filter(x=>x.i!=null);
+  return {years,months,level,ok:years>=1&&have.length>=8};
+}
+function renderSeason(ser){
+  const s=seasonal(ser), M=MONTHS[S.lang];
+  S.charts.s&&S.charts.s.destroy();
+  if(!s.ok){ $("#seasonInsight").textContent=t("seasonFew"); $("#seasonTable").innerHTML=""; return; }
+  const have=s.months.filter(x=>x.i!=null).sort((a,b)=>b.i-a.i);
+  const best=new Set(have.slice(0,2).map(x=>x.m)), low=have[have.length-1];
+  const gap=Math.round((have[0].i-low.i)/low.i*100);
+  $("#seasonInsight").textContent=t("seasonIns",{a:have.slice(0,2).map(x=>M[x.m]).join(S.lang==="kn"?" ಮತ್ತು ":" & "),b:M[low.m],g:gap})+" "+t("yearsUsed",{n:s.years});
+  const c1=css("--series-1"), c2=css("--series-1-light"), grid=css("--grid"), ink=css("--text-2");
+  const data=s.months.map(x=>x.i==null?null:x.i*s.level);
+  S.charts.s=new Chart($("#seasonChart"),{
+    type:"bar",
+    data:{labels:M.map(x=>S.lang==="kn"?x.slice(0,3):x),datasets:[{data,backgroundColor:s.months.map(x=>best.has(x.m)?c1:c2),borderRadius:{topLeft:4,topRight:4},borderSkipped:"bottom",categoryPercentage:.85,barPercentage:.85}]},
+    options:{maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false},tooltip:{displayColors:false,callbacks:{title:i=>M[i[0].dataIndex],label:i=>{const x=s.months[i.dataIndex];return [`${t("typical")}: ${inr(i.raw)}`,`${t("vsAvg")}: ${x.i>=1?"+":""}${((x.i-1)*100).toFixed(0)}%`]}}}},
+      scales:{x:{grid:{display:false},ticks:{color:ink,autoSkip:false,maxRotation:0,font:{size:10}}},
+              y:{grid:{color:grid},border:{display:false},beginAtZero:false,ticks:{color:ink,maxTicksLimit:4,callback:v=>"₹"+Number(v).toLocaleString("en-IN")}}}}
+  });
+  $("#seasonChart").setAttribute("aria-label",$("#seasonInsight").textContent);
+  $("#seasonTable").innerHTML=`<table><thead><tr><th>${esc(t("month"))}</th><th class="num">${esc(t("typical"))}</th><th class="num">${esc(t("vsAvg"))}</th></tr></thead><tbody>${
+    s.months.map(x=>`<tr class="${best.has(x.m)?"sel":""}"><td>${esc(M[x.m])}</td><td class="num">${x.i==null?"—":inr(x.i*s.level)}</td><td class="num">${x.i==null?"—":(x.i>=1?"+":"")+((x.i-1)*100).toFixed(0)+"%"}</td></tr>`).join("")}</tbody></table>`;
+}
+
+/* ====== Harvest-price prediction ======
+   Method: monthly averages → seasonal index per calendar month (each year's months divided by that year's mean)
+   → de-seasonalised log trend over the last 36 months (slope damped by half, capped at ±2%/month)
+   → anchor on the last 3 months → project to the target month × that month's seasonal index.
+   Accuracy is measured by re-running the same method on past cut-off points (walk-forward backtest). */
+function monthlyMap(ser){
+  const ym=new Map();
+  for(const p of ser){const d=new Date(p.date);const k=d.getUTCFullYear()*12+d.getUTCMonth();if(!ym.has(k))ym.set(k,[]);ym.get(k).push(p.modal)}
+  const out=new Map(); [...ym.keys()].sort((a,b)=>a-b).forEach(k=>out.set(k,mean(ym.get(k)))); return out;
+}
+function seasonIdx(mm){
+  const byYear=new Map();
+  for(const [k,v] of mm){const y=Math.floor(k/12);if(!byYear.has(y))byYear.set(y,{});byYear.get(y)[k%12]=v}
+  const acc=Array.from({length:12},()=>[]);
+  for(const ms of byYear.values()){const vals=Object.values(ms);if(vals.length<6)continue;const a=mean(vals);for(const m in ms)acc[m].push(ms[m]/a)}
+  return acc.map(a=>a.length?mean(a):null);
+}
+function fcast(mm,target){
+  const keys=[...mm.keys()]; const k0=keys[keys.length-1];
+  const idx=seasonIdx(mm); const I=k=>idx[((k%12)+12)%12]??1;
+  const xs=[],ys=[]; keys.filter(k=>k>k0-36).forEach(k=>{xs.push(k);ys.push(Math.log(mm.get(k)/I(k)))});
+  let b=0;
+  if(xs.length>=6){const mx=mean(xs),my=mean(ys);let n=0,d=0;xs.forEach((x,i)=>{n+=(x-mx)*(ys[i]-my);d+=(x-mx)**2});b=d?n/d:0}
+  b=Math.max(-0.02,Math.min(0.02,b*0.5));
+  const aK=mean(xs.slice(-3)), aY=mean(ys.slice(-3));
+  return Math.exp(aY+b*(target-aK))*I(target);
+}
+function backtest(mm,h){
+  const keys=[...mm.keys()]; const errs=[];
+  for(let i=0;i<keys.length;i++){
+    const c=keys[i]; if(i<18) continue; if(!mm.has(c+h)) continue;
+    const sub=new Map(keys.slice(0,i+1).map(k=>[k,mm.get(k)]));
+    errs.push(Math.abs(fcast(sub,c+h)/mm.get(c+h)-1));
+  }
+  errs.sort((a,b)=>a-b);
+  const q=p=>errs[Math.min(errs.length-1,Math.floor(p*errs.length))];
+  return errs.length>=6?{n:errs.length,p50:q(.5),p80:q(.8)}:null;
+}
+const kDate=k=>Date.UTC(Math.floor(k/12),k%12,15);
+const kName=k=>`${MONTHS[S.lang][k%12]} ${Math.floor(k/12)}`;
+
+function renderPlan(ser){
+  const out=$("#planOut"), sow=$("#sowIn"), dur=$("#durIn");
+  if(!sow.value) sow.value=new Date().toISOString().slice(0,10);
+  if(!dur.value) dur.value=(S.crop&&DUR[S.crop.en])||110;
+  sow.onchange=dur.onchange=dur.oninput=()=>renderPlan(dailySeries(filteredRecs()));
+  S.charts.p&&S.charts.p.destroy(); S.charts.p=null;
+  if(S.crop && DUR[S.crop.en]===0){ out.innerHTML=`<p class="sub">${esc(t("perennial"))}</p>`; return; }
+  const mm=monthlyMap(ser); const keys=[...mm.keys()];
+  if(keys.length<18){ out.innerHTML=`<p class="banner info">${esc(t("planFew"))}</p>`; return; }
+  const sowD=Date.parse(sow.value)||Date.now(), days=Math.max(30,Math.min(400,+dur.value||110));
+  const hv=new Date(sowD+days*DAY); const hk=hv.getUTCFullYear()*12+hv.getUTCMonth();
+  const k0=keys[keys.length-1]; const h=Math.max(1,hk-k0);
+  const bt=backtest(mm,Math.min(h,12));
+  const e=bt?bt.p80:0.25;
+  const pred=fcast(mm,hk), lo=pred*(1-e), hi=pred*(1+e);
+  const today=ser[ser.length-1].modal, chg=(pred/today-1)*100;
+  const hold=[1,2].map(j=>({k:hk+j,v:fcast(mm,hk+j)}));
+  const past=keys.filter(k=>k%12===hk%12).slice(-4);
+  out.innerHTML=`
+    <div class="fc">
+      <div class="box"><div class="k">${esc(t("harvestOn"))}</div><div class="v">${esc(fmtDate(hv.getTime()))}</div></div>
+      <div class="box"><div class="k">${esc(t("vsToday"))} (${inr(today)})</div><div class="v ${chg>=0?"up":"down"}">${chg>=0?"▲":"▼"} ${Math.abs(chg).toFixed(0)}%</div></div>
+    </div>
+    <div class="predict">
+      <div class="sub" style="margin:0 0 4px">${esc(t("predAt"))} · ${esc(S.market)} · ${esc(kName(hk))}</div>
+      <div class="big">${inr(pred)} <small>${esc(t("perQ"))}</small></div>
+      <div class="sub">${esc(t("likely"))}: <b>${inr(lo)} – ${inr(hi)}</b> · ≈ ${inr(pred/100)} ${esc(t("perKg"))}</div>
+    </div>
+    <div class="chartbox" style="height:220px;margin-top:14px"><canvas id="planChart" role="img"></canvas></div>
+    <div class="legend"><span><i></i><span>${esc(t("actual"))}</span></span><span><i class="dash"></i><span>${esc(t("forecast"))}</span></span><span><i class="band"></i><span>${esc(t("band"))}</span></span></div>
+    <p class="note">${esc(bt?t("accuracy",{h:Math.min(h,12),e:Math.round(bt.p50*100),e2:Math.round(bt.p80*100)}):t("accFew"))}</p>
+    <table style="margin-top:8px"><thead><tr><th>${esc(t("holdTitle"))}</th><th class="num">₹/qtl</th></tr></thead><tbody>
+      <tr class="sel"><td>${esc(kName(hk))}</td><td class="num">${inr(pred)}</td></tr>
+      ${hold.map(x=>`<tr><td>${esc(kName(x.k))}</td><td class="num">${inr(x.v)} <span class="${x.v>=pred?"up":"down"}" style="font-size:.8rem">(${x.v>=pred?"+":""}${((x.v/pred-1)*100).toFixed(0)}%)</span></td></tr>`).join("")}
+    </tbody></table>
+    ${past.length?`<table style="margin-top:8px"><thead><tr><th>${esc(t("pastSame",{m:MONTHS[S.lang][hk%12]}))}</th><th class="num">₹/qtl</th></tr></thead><tbody>${past.map(k=>`<tr><td>${esc(kName(k))}</td><td class="num">${inr(mm.get(k))}</td></tr>`).join("")}</tbody></table>`:""}
+    <p class="note">${esc(t("planWarn"))}</p>`;
+  // chart: last 12 months actual + forecast path to harvest+2 with band
+  const from=k0-11, to=hk+2, labels=[], act=[], fc=[], bl=[], bh=[];
+  for(let k=from;k<=to;k++){
+    labels.push(`${MONTHS[S.lang][k%12].slice(0,3)} ${String(Math.floor(k/12)).slice(2)}`);
+    act.push(k<=k0&&mm.has(k)?mm.get(k):null);
+    if(k>=k0){const v=k===k0?mm.get(k0):fcast(mm,k);const hh=Math.max(1,k-k0);const bb=k===k0?0:e*Math.min(1,hh/h);fc.push(v);bl.push(v*(1-bb));bh.push(v*(1+bb))}
+    else{fc.push(null);bl.push(null);bh.push(null)}
+  }
+  const c1=css("--series-1"),band=css("--series-1-soft"),grid=css("--grid"),ink=css("--text-2");
+  const hiIdx=hk-from;
+  S.charts.p=new Chart($("#planChart"),{type:"line",
+    data:{labels,datasets:[
+      {data:bh,borderWidth:0,pointRadius:0,fill:"+1",backgroundColor:band},
+      {data:bl,borderWidth:0,pointRadius:0,fill:false},
+      {label:t("actual"),data:act,borderColor:c1,borderWidth:2,pointRadius:0,pointHoverRadius:5,tension:.25,spanGaps:true},
+      {label:t("forecast"),data:fc,borderColor:c1,borderWidth:2,borderDash:[6,5],tension:.25,
+       pointRadius:fc.map((_,i)=>i===hiIdx?6:0),pointBackgroundColor:c1,pointBorderColor:css("--surface"),pointBorderWidth:2,pointHoverRadius:5}
+    ]},
+    options:{maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false},tooltip:{displayColors:false,filter:i=>i.datasetIndex>=2&&i.raw!=null,
+        callbacks:{label:i=>`${i.dataset.label}: ${inr(i.raw)}`,afterBody:it=>{const k=it[0].dataIndex;return bl[k]!=null&&bl[k]!==bh[k]?`${t("likely")}: ${inr(bl[k])} – ${inr(bh[k])}`:""}}}},
+      scales:{x:{grid:{display:false},ticks:{color:ink,maxTicksLimit:6,maxRotation:0}},
+              y:{grid:{color:grid},border:{display:false},ticks:{color:ink,maxTicksLimit:4,callback:v=>"₹"+Number(v).toLocaleString("en-IN")}}}}});
+  $("#planChart").setAttribute("aria-label",`${t("predAt")}: ${inr(pred)} (${inr(lo)} – ${inr(hi)})`);
+}
+
+function renderNearby(){
+  const sel=S.markets.find(m=>m.market===S.market);
+  const origin=S.user||(sel&&sel.geo);
+  let rows=S.markets.map(m=>({...m,d:origin&&m.geo?km(origin,m.geo):null}));
+  rows.sort((a,b)=>(a.d??1e9)-(b.d??1e9));
+  const near=rows.filter(r=>r.market!==S.market).slice(0,7);
+  if(sel) near.unshift({...sel,d:origin&&sel.geo?km(origin,sel.geo):null});
+  $("#nearbyTable").innerHTML=`<table><thead><tr><th>${esc(t("mandi"))}</th><th class="num">${esc(t("dist"))}</th><th class="num">${esc(t("rate"))}</th><th class="num">${esc(t("date"))}</th></tr></thead><tbody>${
+    near.map(r=>`<tr class="clickable ${r.market===S.market?"sel":""}" data-m="${esc(r.market)}"><td>${esc(r.market)}${r.market===S.market?`<span class="tag">${esc(t("you"))}</span>`:""}<div class="note" style="margin:0">${esc(r.district||"")}</div></td><td class="num">${r.d==null?"—":Math.round(r.d)+" "+esc(t("km"))}</td><td class="num">${inr(r.modal)}</td><td class="num">${esc(fmtDate(r.date,true))}</td></tr>`).join("")}</tbody></table>`;
+  document.querySelectorAll("#nearbyTable tr.clickable").forEach(tr=>tr.onclick=()=>selectMarket(tr.dataset.m));
+}
+
+/* ====== Settings / setup ====== */
+function openSetup(){ $("#setup").classList.remove("hidden"); $("#keyIn").value=S.key; $("#proxyIn").value=S.proxy; $("#setup").scrollIntoView({behavior:"smooth"}); }
+$("#openSettings").onclick=openSetup;
+$("#saveKey").onclick=()=>{
+  S.key=$("#keyIn").value.trim(); S.proxy=$("#proxyIn").value.trim();
+  LS.set("key",S.key); LS.set("proxy",S.proxy); S.fieldMap=null; memCache.clear();
+  if(location.hash==="#demo"){history.replaceState(null,"",location.pathname)}
+  S.demo=false; $("#demoBanner").classList.add("hidden"); $("#setup").classList.add("hidden"); showErr(null);
+};
+$("#tryDemo").onclick=()=>{location.hash="demo";location.reload()};
+
+/* ====== DEMO data (only with #demo in the URL; clearly labelled, not real prices) ====== */
+const DEMO=(()=>{
+  let rows=null;
+  function rng(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
+  function build(){
+    rows=[];
+    const mk=[["Hubli (Amaragol)","Dharwad"],["Dharwar","Dharwad"],["Annigeri","Dharwad"],["Gadag","Gadag"],["Nargunda","Gadag"],["Haveri","Haveri"],["Ranebennur","Haveri"],["Belgaum","Belgaum"],["Bijapur","Bijapur"]];
+    const cr=[["Onion",1800,0.35,9,["Local","Bellary"]],["Dry Chillies",16000,0.18,7,["Byadgi","Dabbi"]],["Cotton",7200,0.10,1,["Other"]],["Groundnut",6200,0.12,5,["Bold"]],
+              ["Jowar(Sorghum)",3300,0.10,6,["White"]],["Bengal Gram(Gram)(Whole)",5600,0.09,8,["Bengal Gram"]],["Maize",2200,0.12,7,["Local"]],["Wheat",3100,0.08,10,["Bansi"]]];
+    const end=Date.UTC(2026,10,18), start=end-4*365*DAY;
+    mk.forEach(([m,dist],mi)=>cr.forEach(([c,base,amp,peak,vars],ci)=>{
+      const r=rng(mi*97+ci*13+7); let walk=0; const mBias=1+(r()-.5)*0.08;
+      if(mi>6 && ci>5) return;
+      for(let d=start; d<=end; d+=DAY){
+        const wd=new Date(d).getUTCDay(); if(wd===0) continue;
+        walk+= (r()-.5)*0.02; walk*=0.995;
+        if(r()<0.25) continue;
+        const mo=new Date(d).getUTCMonth()+new Date(d).getUTCDate()/31;
+        const yrs=(d-start)/(365*DAY);
+        const season=1+amp*Math.cos((mo-peak)/12*2*Math.PI);
+        vars.forEach((v,vi)=>{
+          const modal=Math.round(base*mBias*season*(1+0.05*yrs)*(1+walk)*(1+vi*0.12)*(1+(r()-.5)*0.04)/5)*5;
+          const x=new Date(d);
+          rows.push({State:"Karnataka",District:dist,Market:m,Commodity:c,Variety:v,Grade:"FAQ",
+            Arrival_Date:`${String(x.getUTCDate()).padStart(2,"0")}/${String(x.getUTCMonth()+1).padStart(2,"0")}/${x.getUTCFullYear()}`,
+            Min_Price:String(Math.round(modal*0.85)),Max_Price:String(Math.round(modal*1.1)),Modal_Price:String(modal)});
+        });
+      }
+    }));
+    const pd=s=>{const [d,m,y]=s.split("/");return y+m+d};
+    rows.sort((a,b)=>pd(a.Arrival_Date).localeCompare(pd(b.Arrival_Date)));  // real feed is appended day by day
+  }
+  return {get({limit,offset,filters}){
+    if(!rows) build();
+    const map={state:"State",district:"District",market:"Market",commodity:"Commodity",variety:"Variety"};
+    const f=rows.filter(r=>Object.entries(filters).every(([k,v])=>r[map[k]||k]===v));
+    return new Promise(res=>setTimeout(()=>res({total:f.length,fields:["State","District","Market","Commodity","Variety","Grade","Arrival_Date","Min_Price","Max_Price","Modal_Price"],records:f.slice(offset,offset+limit)}),120));
+  }};
+})();
+
+/* ====== Boot ====== */
+if(S.demo){ $("#demoBanner").classList.remove("hidden"); }
+else if(!S.key){ openSetup(); }
+applyLang();
+</script>
+</body>
+</html>
