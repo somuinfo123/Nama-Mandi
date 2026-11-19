@@ -11,7 +11,7 @@ and gets:
 - the actual rate in the same month in past years,
 - the latest rate, whether it is high, average or low against the last 12 months, the price history, the best months to sell, and nearby mandis compared.
 
-All prices are free government AGMARKNET data from data.gov.in ("Variety-wise Daily Market Prices", resource `579b464db66ec23bdd000001239054491c3e4ebd4d6e3d0eb373eb06`). The app has no server, database, login or ads.
+All prices are free government AGMARKNET data from data.gov.in ("Variety-wise Daily Market Prices", resource `35985678-0d79-46b4-9ed6-6f13308a1d24`). The app has no server, database, login or ads.
 
 ## Preview it now
 Open `index.html#demo` in a browser. It shows a yellow **DEMO** banner and uses made-up sample prices, so you can see how the app works.
