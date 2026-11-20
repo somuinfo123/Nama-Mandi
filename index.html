@@ -118,6 +118,7 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}
 th,td{padding:9px 6px;text-align:left;border-bottom:1px solid var(--border)}
 th{font-size:.75rem;color:var(--text-2);font-weight:600}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:"Noto Sans",system-ui,sans-serif}
+td.nowrap{white-space:nowrap}
 tr.sel td{font-weight:700}
 tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:var(--surface-2)}
@@ -127,6 +128,21 @@ details summary{cursor:pointer;color:var(--series-1);font-size:.88rem;margin-top
 footer{color:var(--muted);font-size:.8rem;margin-top:22px;text-align:center}
 footer a{color:var(--muted)}
 .hidden{display:none!important}
+
+/* chosen crop + mandi bar */
+.summary .sumtxt{font-size:1.05rem}
+.btn.sm{min-height:40px;padding:8px 14px;font-size:.9rem}
+
+/* one-question-at-a-time panels */
+.askhint{color:var(--text-2);font-size:.95rem;margin:20px 2px 0}
+.card.q{padding:0;overflow:hidden;margin-top:10px}
+.qhead{width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;padding:14px 16px;min-height:64px;text-align:left;cursor:pointer;font-weight:600;font-size:1rem;line-height:1.3}
+.qhead .qi{width:38px;height:38px;border-radius:10px;background:var(--brand-soft);color:var(--good);display:grid;place-items:center;flex:none}
+.qhead .chev{margin-left:auto;flex:none;color:var(--text-2);transition:transform .2s}
+.q.open .qhead .chev{transform:rotate(180deg)}
+.q.open .qhead{border-bottom:1px solid var(--border)}
+.qbody{padding:16px}
+.q:not(.open) .qbody{display:none}
 @media (max-width:420px){.big{font-size:2rem}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:span 2}}
 </style>
 </head>
@@ -174,48 +190,84 @@ footer a{color:var(--muted)}
     <div id="mandiStatus" class="status hidden"></div>
   </section>
 
+  <!-- Chosen crop + mandi (shown once both are picked) -->
+  <section id="summary" class="card summary hidden">
+    <div class="sumtxt"><b id="sumCrop"></b> · <span id="sumMandi"></span></div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn secondary sm" id="chgCrop" data-t="chgCrop"></button>
+      <button class="btn secondary sm" id="chgMandi" data-t="chgMandi"></button>
+    </div>
+  </section>
+
   <!-- Results -->
   <div id="results" class="hidden">
-    <section class="card" id="planCard">
-      <h2><span class="step">3</span><span data-t="planTitle"></span></h2>
-      <div class="row">
-        <div class="field" style="min-width:160px"><label for="sowIn" data-t="sowDate"></label><input id="sowIn" type="date"></div>
-        <div class="field" style="min-width:140px;max-width:200px"><label for="durIn" data-t="duration"></label><input id="durIn" type="number" min="30" max="400" step="5" inputmode="numeric"></div>
-      </div>
-      <div id="planOut"></div>
-    </section>
-
     <section class="card hero" id="heroCard"></section>
 
-    <section class="card">
-      <div class="charthead">
-        <h2 style="margin:0" data-t="history"></h2>
-        <div class="seg" id="rangeSeg" role="group">
-          <button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="ALL" data-t="all"></button>
+    <p class="askhint" data-t="askHint"></p>
+
+    <section class="card q" id="qHist">
+      <button class="qhead" aria-expanded="false" aria-controls="qHistBody">
+        <span class="qi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
+        <span data-t="qHist"></span>
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="qbody" id="qHistBody">
+        <div class="stats" id="histStats" style="margin-top:0;margin-bottom:14px"></div>
+        <div class="charthead">
+          <div class="row" id="varietyRow">
+            <label for="varSel" class="sub" data-t="variety"></label>
+            <select id="varSel"></select>
+          </div>
+          <div class="seg" id="rangeSeg" role="group">
+            <button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="ALL" data-t="all"></button>
+          </div>
         </div>
+        <div class="chartbox"><canvas id="histChart" role="img"></canvas></div>
+        <div class="legend"><span><i></i><span data-t="modal"></span></span><span><i class="band"></i><span data-t="minmax"></span></span></div>
+        <p class="note" data-t="modalNote"></p>
       </div>
-      <div class="row" id="varietyRow" style="margin-bottom:8px">
-        <label for="varSel" class="sub" data-t="variety"></label>
-        <select id="varSel"></select>
-      </div>
-      <div class="chartbox"><canvas id="histChart" role="img"></canvas></div>
-      <div class="legend"><span><i></i><span data-t="modal"></span></span><span><i class="band"></i><span data-t="minmax"></span></span></div>
-      <p class="note" data-t="modalNote"></p>
     </section>
 
-    <section class="card">
-      <h2 data-t="season"></h2>
-      <p class="insight" id="seasonInsight"></p>
-      <div class="chartbox" style="height:230px"><canvas id="seasonChart" role="img"></canvas></div>
-      <div class="legend"><span><i class="best"></i><span data-t="bestMonths"></span></span><span><i class="other"></i><span data-t="otherMonths"></span></span></div>
-      <p class="note" data-t="seasonNote"></p>
-      <details><summary data-t="seeNumbers"></summary><div id="seasonTable"></div></details>
+    <section class="card q" id="qSeason">
+      <button class="qhead" aria-expanded="false" aria-controls="qSeasonBody">
+        <span class="qi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+        <span data-t="season"></span>
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="qbody" id="qSeasonBody">
+        <p class="insight" id="seasonInsight"></p>
+        <div class="chartbox" style="height:230px"><canvas id="seasonChart" role="img"></canvas></div>
+        <div class="legend"><span><i class="best"></i><span data-t="bestMonths"></span></span><span><i class="other"></i><span data-t="otherMonths"></span></span></div>
+        <p class="note" data-t="seasonNote"></p>
+        <details><summary data-t="seeNumbers"></summary><div id="seasonTable"></div></details>
+      </div>
     </section>
 
-    <section class="card">
-      <h2 data-t="nearby"></h2>
-      <p class="note" style="margin-top:0" data-t="nearbyNote"></p>
-      <div id="nearbyTable"></div>
+    <section class="card q" id="qNearby">
+      <button class="qhead" aria-expanded="false" aria-controls="qNearbyBody">
+        <span class="qi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg></span>
+        <span data-t="qNearby"></span>
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="qbody" id="qNearbyBody">
+        <p class="note" style="margin-top:0" data-t="nearbyNote"></p>
+        <div id="nearbyTable"></div>
+      </div>
+    </section>
+
+    <section class="card q" id="qPlan">
+      <button class="qhead" aria-expanded="false" aria-controls="qPlanBody">
+        <span class="qi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V11"/><path d="M12 11c-4 0-6-2-6-6 4 0 6 2 6 6z"/><path d="M12 13c0-4 2-6 6-6 0 4-2 6-6 6z"/></svg></span>
+        <span data-t="qPlan"></span>
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="qbody" id="qPlanBody">
+        <div class="row">
+          <div class="field" style="min-width:160px"><label for="sowIn" data-t="sowDate"></label><input id="sowIn" type="date"></div>
+          <div class="field" style="min-width:140px;max-width:200px"><label for="durIn" data-t="duration"></label><input id="durIn" type="number" min="30" max="400" step="5" inputmode="numeric"></div>
+        </div>
+        <div id="planOut"></div>
+      </div>
     </section>
   </div>
 
@@ -247,6 +299,11 @@ const T = {
   vs12:"Compared to the last 12 months, today's rate is",high:"HIGH",mid:"AVERAGE",low:"LOW",
   pctl:"higher than {p}% of days",
   avg30:"30-day average",lastYr:"Same month last year",avg12:"12-month average",
+  cmpUp:"Today is {p}% higher",cmpDown:"Today is {p}% lower",
+  seeDetails:"See details (chart, store & sell later, past years)",
+  chgCrop:"Change crop",chgMandi:"Change mandi",askHint:"Want to know more? Tap a question.",
+  qHist:"How has the price moved?",qNearby:"Is the price better at a nearby mandi?",qPlan:"Planning to sow? Expected price at harvest",
+  planPrompt:"Enter your sowing date to see the expected price at harvest.",
   history:"Price history",all:"All",variety:"Variety",allVar:"All varieties",modal:"Modal price (most trades)",minmax:"Min–Max range",
   modalNote:"Modal price = the price at which most lots sold that day. ₹ per quintal (100 kg).",
   season:"Which month usually pays best?",bestMonths:"Best months",otherMonths:"Other months",
@@ -279,6 +336,11 @@ const T = {
   vs12:"ಕಳೆದ 12 ತಿಂಗಳಿಗೆ ಹೋಲಿಸಿದರೆ ಇಂದಿನ ದರ",high:"ಹೆಚ್ಚು",mid:"ಸರಾಸರಿ",low:"ಕಡಿಮೆ",
   pctl:"{p}% ದಿನಗಳಿಗಿಂತ ಹೆಚ್ಚು",
   avg30:"30 ದಿನಗಳ ಸರಾಸರಿ",lastYr:"ಕಳೆದ ವರ್ಷ ಇದೇ ತಿಂಗಳು",avg12:"12 ತಿಂಗಳ ಸರಾಸರಿ",
+  cmpUp:"ಇಂದು {p}% ಹೆಚ್ಚು",cmpDown:"ಇಂದು {p}% ಕಡಿಮೆ",
+  seeDetails:"ವಿವರ ನೋಡಿ (ಚಾರ್ಟ್, ಸಂಗ್ರಹಿಸಿ ನಂತರ ಮಾರಾಟ, ಹಿಂದಿನ ವರ್ಷಗಳು)",
+  chgCrop:"ಬೆಳೆ ಬದಲಿಸಿ",chgMandi:"ಮಂಡಿ ಬದಲಿಸಿ",askHint:"ಇನ್ನಷ್ಟು ತಿಳಿಯಬೇಕೆ? ಒಂದು ಪ್ರಶ್ನೆ ಒತ್ತಿ.",
+  qHist:"ದರ ಹೇಗೆ ಬದಲಾಗಿದೆ?",qNearby:"ಹತ್ತಿರದ ಮಂಡಿಯಲ್ಲಿ ಹೆಚ್ಚು ದರ ಇದೆಯೇ?",qPlan:"ಬಿತ್ತನೆ ಮಾಡುತ್ತೀರಾ? ಕೊಯ್ಲಿನ ಸಮಯದ ಅಂದಾಜು ದರ",
+  planPrompt:"ಕೊಯ್ಲಿನ ಸಮಯದ ಅಂದಾಜು ದರ ನೋಡಲು ಬಿತ್ತನೆ ದಿನಾಂಕ ಹಾಕಿ.",
   history:"ದರದ ಇತಿಹಾಸ",all:"ಎಲ್ಲಾ",variety:"ತಳಿ",allVar:"ಎಲ್ಲಾ ತಳಿಗಳು",modal:"ಮಾದರಿ ದರ (ಹೆಚ್ಚು ವ್ಯಾಪಾರ)",minmax:"ಕನಿಷ್ಠ–ಗರಿಷ್ಠ",
   modalNote:"ಮಾದರಿ ದರ = ಆ ದಿನ ಹೆಚ್ಚಿನ ಲಾಟ್‌ಗಳು ಮಾರಾಟವಾದ ದರ. ₹ ಪ್ರತಿ ಕ್ವಿಂಟಲ್ (100 ಕೆಜಿ).",
   season:"ಯಾವ ತಿಂಗಳಲ್ಲಿ ಸಾಮಾನ್ಯವಾಗಿ ಹೆಚ್ಚು ದರ?",bestMonths:"ಉತ್ತಮ ತಿಂಗಳುಗಳು",otherMonths:"ಇತರ ತಿಂಗಳುಗಳು",
@@ -302,6 +364,11 @@ const T = {
 const MONTHS = {
   en:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
   kn:["ಜನವರಿ","ಫೆಬ್ರವರಿ","ಮಾರ್ಚ್","ಏಪ್ರಿಲ್","ಮೇ","ಜೂನ್","ಜುಲೈ","ಆಗಸ್ಟ್","ಸೆಪ್ಟೆಂಬರ್","ಅಕ್ಟೋಬರ್","ನವೆಂಬರ್","ಡಿಸೆಂಬರ್"]
+};
+/* Short month names for chart axes. Kannada must not be cut with slice() — that splits letters apart. */
+const MONTHS_S = {
+  en:MONTHS.en,
+  kn:["ಜನ","ಫೆಬ್ರ","ಮಾರ್ಚ್","ಏಪ್ರಿ","ಮೇ","ಜೂನ್","ಜುಲೈ","ಆಗ","ಸೆಪ್ಟೆಂ","ಅಕ್ಟೋ","ನವೆಂ","ಡಿಸೆಂ"]
 };
 
 /* ====== Crops (AGMARKNET names + Kannada) — kw used to auto-match if names differ ====== */
@@ -511,7 +578,7 @@ function findCrop(meta,c){
 
 async function selectCrop(c){
   S.crop=c; S.market=null; S.recs=[]; showErr(null); $("#durIn").value=DUR[c.en]||"";
-  renderCrops(); $("#results").classList.add("hidden");
+  renderCrops(); closeResults();
   $("#mandiCard").classList.remove("hidden");
   const st=$("#mandiStatus"); status(st,t("loadingCrop"));
   $("#mandiSel").disabled=true; $("#locBtn").disabled=true;
@@ -568,15 +635,18 @@ async function selectMarket(name){
     S.recs=await loadSeries(mk.file);
     if(prev && !/%|…/.test(prev)) status(st,prev,false); else st.classList.add("hidden");
     if(!S.recs.length){status(st,t("noData"),false);return}
-    $("#results").classList.remove("hidden");
+    st.classList.add("hidden");
+    $("#cropCard").classList.add("hidden"); $("#mandiCard").classList.add("hidden");
+    $("#summary").classList.remove("hidden"); $("#results").classList.remove("hidden");
     renderResults();
-    $("#heroCard").scrollIntoView({behavior:"smooth",block:"start"});
+    window.scrollTo({top:0,behavior:"smooth"});
   }catch(e){st.classList.add("hidden");showErr(e.message)}
 }
 
 /* ====== Results ====== */
 function filteredRecs(){return S.variety==="ALL"?S.recs:S.recs.filter(r=>r.variety===S.variety)}
-const fmtDate=(d,short)=>{const x=new Date(d);const M=MONTHS[S.lang][x.getUTCMonth()];return short?`${x.getUTCDate()} ${M} ${String(x.getUTCFullYear()).slice(2)}`:`${x.getUTCDate()} ${M} ${x.getUTCFullYear()}`};
+const fmtDate=(d,short)=>{const x=new Date(d);const M=(short?MONTHS_S:MONTHS)[S.lang][x.getUTCMonth()];return short?`${x.getUTCDate()} ${M} ${String(x.getUTCFullYear()).slice(2)}`:`${x.getUTCDate()} ${M} ${x.getUTCFullYear()}`};
+const numDate=d=>{const x=new Date(d);return `${String(x.getUTCDate()).padStart(2,"0")}/${String(x.getUTCMonth()+1).padStart(2,"0")}/${String(x.getUTCFullYear()).slice(2)}`};
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 
 function renderResults(){
@@ -588,8 +658,38 @@ function renderResults(){
   $("#varSel").onchange=e=>{S.variety=e.target.value;renderResults()};
 
   const ser=dailySeries(filteredRecs()); if(!ser.length) return;
-  renderPlan(ser); renderHero(ser); renderHistory(ser); renderSeason(ser); renderNearby();
+  renderSummary(); renderPlan(ser); renderHero(ser); renderHistory(ser); renderSeason(ser); renderNearby();
 }
+
+/* ====== Chosen crop/mandi bar + one-question-at-a-time panels ====== */
+function renderSummary(){
+  $("#sumCrop").textContent=S.crop?cropLabel(S.crop):S.commodity;
+  const mk=S.markets.find(m=>m.market===S.market);
+  const d=S.user&&mk&&mk.geo?` · ${Math.round(km(S.user,mk.geo))} ${t("km")}`:"";
+  $("#sumMandi").textContent=S.market+(mk&&mk.district?` (${mk.district})`:"")+d;
+}
+function closeResults(){
+  $("#summary").classList.add("hidden"); $("#results").classList.add("hidden");
+}
+$("#chgCrop").onclick=()=>{
+  closeResults(); $("#cropCard").classList.remove("hidden"); $("#mandiCard").classList.add("hidden");
+  $("#cropCard").scrollIntoView({behavior:"smooth",block:"start"});
+};
+$("#chgMandi").onclick=()=>{
+  closeResults(); $("#mandiStatus").classList.add("hidden");
+  $("#cropCard").classList.add("hidden"); $("#mandiCard").classList.remove("hidden");
+  $("#mandiSel").value="";
+  $("#mandiCard").scrollIntoView({behavior:"smooth",block:"start"});
+};
+function openQ(q){
+  const wasOpen=q.classList.contains("open");
+  document.querySelectorAll(".q").forEach(x=>{x.classList.remove("open");x.querySelector(".qhead").setAttribute("aria-expanded","false")});
+  if(wasOpen) return;
+  q.classList.add("open"); q.querySelector(".qhead").setAttribute("aria-expanded","true");
+  Object.values(S.charts).forEach(c=>c&&c.resize());   // charts drawn while hidden need their size
+  q.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelectorAll(".q .qhead").forEach(h=>h.onclick=()=>openQ(h.parentElement));
 
 function renderHero(ser){
   const last=ser[ser.length-1];
@@ -602,7 +702,7 @@ function renderHero(ser){
   const level=pct>=67?"high":pct<=33?"low":"mid";
   const ago=Math.floor((Date.now()-last.date)/DAY);
   const crop=S.crop?cropLabel(S.crop):S.commodity;
-  const diff=(v)=>{if(v==null)return"";const p=(last.modal-v)/v*100;const cls=p>=0?"up":"down";return `<div class="d ${cls}">${p>=0?"▲":"▼"} ${Math.abs(p).toFixed(0)}% ${S.lang==="kn"?"ಇಂದು":"today vs"}</div>`};
+  const diff=(v)=>{if(v==null)return"";const p=(last.modal-v)/v*100;const up=p>=0;return `<div class="d ${up?"up":"down"}">${up?"▲":"▼"} ${esc(t(up?"cmpUp":"cmpDown",{p:Math.abs(p).toFixed(0)}))}</div>`};
   const icon={high:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
     low:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
     mid:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>'}[level];
@@ -612,12 +712,11 @@ function renderHero(ser){
     <div class="sub">≈ ${inr(last.modal/100)} ${esc(t("perKg"))} · ${esc(t("range"))}: ${inr(last.min)} – ${inr(last.max)} · ${esc(t("reported"))}: ${esc(fmtDate(last.date))}</div>
     ${ago>21?`<div class="banner info">${esc(t("stale",{n:ago}))}</div>`:""}
     <div class="verdict ${level}">${icon}<span>${esc(t("vs12"))}: ${esc(t(level))}</span></div>
-    <div class="sub" style="margin-top:4px">${esc(t("pctl",{p:pct}))}</div>
-    <div class="stats">
+    <div class="sub" style="margin-top:4px">${esc(t("pctl",{p:pct}))}</div>`;
+  $("#histStats").innerHTML=`
       <div class="stat"><div class="k">${esc(t("avg30"))}</div><div class="v">${inr(avg30)}</div>${diff(avg30)}</div>
       <div class="stat"><div class="k">${esc(t("avg12"))}</div><div class="v">${inr(avg12)}</div>${diff(avg12)}</div>
-      <div class="stat"><div class="k">${esc(t("lastYr"))}</div><div class="v">${inr(avgLy)}</div>${diff(avgLy)}</div>
-    </div>`;
+      <div class="stat"><div class="k">${esc(t("lastYr"))}</div><div class="v">${inr(avgLy)}</div>${diff(avgLy)}</div>`;
 }
 
 function weekly(ser){
@@ -680,10 +779,10 @@ function renderSeason(ser){
   const data=s.months.map(x=>x.i==null?null:x.i*s.level);
   S.charts.s=new Chart($("#seasonChart"),{
     type:"bar",
-    data:{labels:M.map(x=>S.lang==="kn"?x.slice(0,3):x),datasets:[{data,backgroundColor:s.months.map(x=>best.has(x.m)?c1:c2),borderRadius:{topLeft:4,topRight:4},borderSkipped:"bottom",categoryPercentage:.85,barPercentage:.85}]},
+    data:{labels:MONTHS_S[S.lang],datasets:[{data,backgroundColor:s.months.map(x=>best.has(x.m)?c1:c2),borderRadius:{topLeft:4,topRight:4},borderSkipped:"bottom",categoryPercentage:.85,barPercentage:.85}]},
     options:{maintainAspectRatio:false,animation:false,
       plugins:{legend:{display:false},tooltip:{displayColors:false,callbacks:{title:i=>M[i[0].dataIndex],label:i=>{const x=s.months[i.dataIndex];return [`${t("typical")}: ${inr(i.raw)}`,`${t("vsAvg")}: ${x.i>=1?"+":""}${((x.i-1)*100).toFixed(0)}%`]}}}},
-      scales:{x:{grid:{display:false},ticks:{color:ink,autoSkip:false,maxRotation:0,font:{size:10}}},
+      scales:{x:{grid:{display:false},ticks:{color:ink,autoSkip:false,maxRotation:60,font:{size:10}}},
               y:{grid:{color:grid},border:{display:false},beginAtZero:false,ticks:{color:ink,maxTicksLimit:4,callback:v=>"₹"+Number(v).toLocaleString("en-IN")}}}}
   });
   $("#seasonChart").setAttribute("aria-label",$("#seasonInsight").textContent);
@@ -734,11 +833,11 @@ const kName=k=>`${MONTHS[S.lang][k%12]} ${Math.floor(k/12)}`;
 
 function renderPlan(ser){
   const out=$("#planOut"), sow=$("#sowIn"), dur=$("#durIn");
-  if(!sow.value) sow.value=new Date().toISOString().slice(0,10);
   if(!dur.value) dur.value=(S.crop&&DUR[S.crop.en])||110;
   sow.onchange=dur.onchange=dur.oninput=()=>renderPlan(dailySeries(filteredRecs()));
   S.charts.p&&S.charts.p.destroy(); S.charts.p=null;
   if(S.crop && DUR[S.crop.en]===0){ out.innerHTML=`<p class="sub">${esc(t("perennial"))}</p>`; return; }
+  if(!sow.value){ out.innerHTML=`<p class="note">${esc(t("planPrompt"))}</p>`; return; }
   const mm=monthlyMap(ser); const keys=[...mm.keys()];
   if(keys.length<18){ out.innerHTML=`<p class="banner info">${esc(t("planFew"))}</p>`; return; }
   const sowD=Date.parse(sow.value)||Date.now(), days=Math.max(30,Math.min(400,+dur.value||110));
@@ -760,6 +859,8 @@ function renderPlan(ser){
       <div class="big">${inr(pred)} <small>${esc(t("perQ"))}</small></div>
       <div class="sub">${esc(t("likely"))}: <b>${inr(lo)} – ${inr(hi)}</b> · ≈ ${inr(pred/100)} ${esc(t("perKg"))}</div>
     </div>
+    <p class="note">${esc(t("planWarn"))}</p>
+    <details id="planMore"><summary>${esc(t("seeDetails"))}</summary>
     <div class="chartbox" style="height:220px;margin-top:14px"><canvas id="planChart" role="img"></canvas></div>
     <div class="legend"><span><i></i><span>${esc(t("actual"))}</span></span><span><i class="dash"></i><span>${esc(t("forecast"))}</span></span><span><i class="band"></i><span>${esc(t("band"))}</span></span></div>
     <p class="note">${esc(bt?t("accuracy",{h:Math.min(h,12),e:Math.round(bt.p50*100),e2:Math.round(bt.p80*100)}):t("accFew"))}</p>
@@ -768,11 +869,12 @@ function renderPlan(ser){
       ${hold.map(x=>`<tr><td>${esc(kName(x.k))}</td><td class="num">${inr(x.v)} <span class="${x.v>=pred?"up":"down"}" style="font-size:.8rem">(${x.v>=pred?"+":""}${((x.v/pred-1)*100).toFixed(0)}%)</span></td></tr>`).join("")}
     </tbody></table>
     ${past.length?`<table style="margin-top:8px"><thead><tr><th>${esc(t("pastSame",{m:MONTHS[S.lang][hk%12]}))}</th><th class="num">₹/qtl</th></tr></thead><tbody>${past.map(k=>`<tr><td>${esc(kName(k))}</td><td class="num">${inr(mm.get(k))}</td></tr>`).join("")}</tbody></table>`:""}
-    <p class="note">${esc(t("planWarn"))}</p>`;
+    </details>`;
+  $("#planMore").ontoggle=()=>{ if(S.charts.p) S.charts.p.resize(); };
   // chart: last 12 months actual + forecast path to harvest+2 with band
   const from=k0-11, to=hk+2, labels=[], act=[], fc=[], bl=[], bh=[];
   for(let k=from;k<=to;k++){
-    labels.push(`${MONTHS[S.lang][k%12].slice(0,3)} ${String(Math.floor(k/12)).slice(2)}`);
+    labels.push(`${MONTHS_S[S.lang][k%12]} ${String(Math.floor(k/12)).slice(2)}`);
     act.push(k<=k0&&mm.has(k)?mm.get(k):null);
     if(k>=k0){const v=k===k0?mm.get(k0):fcast(mm,k);const hh=Math.max(1,k-k0);const bb=k===k0?0:e*Math.min(1,hh/h);fc.push(v);bl.push(v*(1-bb));bh.push(v*(1+bb))}
     else{fc.push(null);bl.push(null);bh.push(null)}
@@ -803,7 +905,7 @@ function renderNearby(){
   const near=rows.filter(r=>r.market!==S.market).slice(0,7);
   if(sel) near.unshift({...sel,d:origin&&sel.geo?km(origin,sel.geo):null});
   $("#nearbyTable").innerHTML=`<table><thead><tr><th>${esc(t("mandi"))}</th><th class="num">${esc(t("dist"))}</th><th class="num">${esc(t("rate"))}</th><th class="num">${esc(t("date"))}</th></tr></thead><tbody>${
-    near.map(r=>`<tr class="clickable ${r.market===S.market?"sel":""}" data-m="${esc(r.market)}"><td>${esc(r.market)}${r.market===S.market?`<span class="tag">${esc(t("you"))}</span>`:""}<div class="note" style="margin:0">${esc(r.district||"")}</div></td><td class="num">${r.d==null?"—":Math.round(r.d)+" "+esc(t("km"))}</td><td class="num">${inr(r.modal)}</td><td class="num">${esc(fmtDate(r.date,true))}</td></tr>`).join("")}</tbody></table>`;
+    near.map(r=>`<tr class="clickable ${r.market===S.market?"sel":""}" data-m="${esc(r.market)}"><td>${esc(r.market)}${r.market===S.market?`<span class="tag">${esc(t("you"))}</span>`:""}<div class="note" style="margin:0">${esc(r.district||"")}</div></td><td class="num nowrap">${r.d==null?"—":Math.round(r.d)+" "+esc(t("km"))}</td><td class="num">${inr(r.modal)}</td><td class="num nowrap">${esc(numDate(r.date))}</td></tr>`).join("")}</tbody></table>`;
   document.querySelectorAll("#nearbyTable tr.clickable").forEach(tr=>tr.onclick=()=>selectMarket(tr.dataset.m));
 }
 
