@@ -150,22 +150,6 @@ footer a{color:var(--muted)}
   <div id="demoBanner" class="banner demo hidden" data-t="demo"></div>
   <div id="errBanner" class="banner err hidden"></div>
 
-  <!-- Setup (shown only to the app owner when no API key is configured) -->
-  <section id="setup" class="card hidden">
-    <h2 data-t="setupTitle"></h2>
-    <p class="sub" data-t="setupBody"></p>
-    <div class="row" style="margin-top:10px">
-      <div class="field"><label for="keyIn" data-t="apiKey"></label><input id="keyIn" type="password" autocomplete="off" placeholder="579b464d…"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="field"><label for="proxyIn" data-t="proxy"></label><input id="proxyIn" type="text" autocomplete="off" placeholder="https://your-worker.workers.dev/?url="></div>
-    </div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn" id="saveKey" data-t="save"></button>
-      <button class="btn secondary" id="tryDemo" data-t="tryDemo"></button>
-    </div>
-  </section>
-
   <!-- Step 1: crop -->
   <section id="cropCard" class="card">
     <h2><span class="step">1</span><span data-t="chooseCrop"></span></h2>
@@ -237,26 +221,20 @@ footer a{color:var(--muted)}
 
   <footer>
     <div data-t="source"></div>
-    <div style="margin-top:6px"><button class="linkbtn" id="openSettings" style="color:var(--muted)" data-t="settings"></button></div>
+    <div id="updated" style="margin-top:6px"></div>
   </footer>
 </main>
 
 <script>
-/* =====================================================================
-   CONFIG — set your free data.gov.in API key here before hosting.
-   Get one at https://data.gov.in → Sign up → My Account → Generate key.
-   ===================================================================== */
+/* ====== CONFIG ====== */
 const CONFIG = {
-  API_KEY: "",                 // e.g. "579b464db66ec23bdd000001xxxxxxxx"
-  PROXY: "",                   // optional, e.g. "https://mandi-proxy.you.workers.dev/?url="
-  RESOURCE: "35985678-0d79-46b4-9ed6-6f13308a1d24", // Variety-wise Daily Market Prices (AGMARKNET)
-  STATE: "Karnataka",
-  CACHE_HOURS: 12
+  DATA_URL: "data/",          // folder the daily GitHub Action writes to
+  STATE: "Karnataka"
 };
 
 /* ====== Text (Kannada / English) ====== */
 const T = {
- en:{title:"Mandi Rates",tagline:"Rates at your nearest APMC, with past trends",
+ en:{title:"Mandi Rates",updatedOn:"Prices updated",errNoData:"Prices are being prepared. Please check again in a few hours.",tagline:"Rates at your nearest APMC, with past trends",
   demo:"DEMO MODE — made-up sample prices to preview the app. These are NOT real rates.",
   setupTitle:"One-time setup (app owner)",setupBody:"This app reads free government AGMARKNET prices from data.gov.in. Paste your free API key below (data.gov.in → sign up → My Account → API key). To publish for farmers, put the key in CONFIG at the top of the file instead.",
   apiKey:"data.gov.in API key",proxy:"Proxy URL (optional — only if the browser blocks direct access)",save:"Save & start",tryDemo:"Preview with sample data",
@@ -288,7 +266,7 @@ const T = {
   actual:"Monthly average (actual)",forecast:"Prediction",band:"Likely range",
   settings:"Settings",errNet:"Could not reach the price server. Check internet and try again.",errKey:"The API key was rejected. Check the key in settings.",
   errCors:"Your browser blocked the request to data.gov.in. Set a proxy URL in settings (see README)."},
- kn:{title:"ಮಂಡಿ ದರ",tagline:"ನಿಮ್ಮ ಹತ್ತಿರದ ಎಪಿಎಂಸಿ ದರ ಮತ್ತು ಹಿಂದಿನ ಪ್ರವೃತ್ತಿ",
+ kn:{title:"ಮಂಡಿ ದರ",updatedOn:"ದರ ನವೀಕರಿಸಿದ ದಿನ",errNoData:"ದರಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ. ಕೆಲವು ಗಂಟೆಗಳ ನಂತರ ಮತ್ತೆ ನೋಡಿ.",tagline:"ನಿಮ್ಮ ಹತ್ತಿರದ ಎಪಿಎಂಸಿ ದರ ಮತ್ತು ಹಿಂದಿನ ಪ್ರವೃತ್ತಿ",
   demo:"ಡೆಮೊ — ಆ್ಯಪ್ ನೋಡಲು ಮಾದರಿ ದರಗಳು ಮಾತ್ರ. ಇವು ನಿಜವಾದ ದರಗಳಲ್ಲ.",
   setupTitle:"ಒಂದು ಬಾರಿಯ ಸೆಟಪ್ (ಆ್ಯಪ್ ಮಾಲೀಕರಿಗೆ)",setupBody:"ಈ ಆ್ಯಪ್ data.gov.in ನಿಂದ ಉಚಿತ ಸರ್ಕಾರಿ AGMARKNET ದರಗಳನ್ನು ಓದುತ್ತದೆ. ನಿಮ್ಮ ಉಚಿತ API ಕೀ ಇಲ್ಲಿ ಹಾಕಿ. ರೈತರಿಗೆ ಪ್ರಕಟಿಸುವಾಗ ಫೈಲ್‌ನ ಮೇಲ್ಭಾಗದ CONFIG ನಲ್ಲಿ ಕೀ ಹಾಕಿ.",
   apiKey:"data.gov.in API ಕೀ",proxy:"ಪ್ರಾಕ್ಸಿ URL (ಐಚ್ಛಿಕ)",save:"ಉಳಿಸಿ ಮತ್ತು ಪ್ರಾರಂಭಿಸಿ",tryDemo:"ಮಾದರಿ ದತ್ತಾಂಶದೊಂದಿಗೆ ನೋಡಿ",
@@ -408,9 +386,6 @@ const LS = {
 const S = {
   lang: LS.get("lang","kn"),
   demo: location.hash==="#demo",
-  key: CONFIG.API_KEY || LS.get("key",""),
-  proxy: CONFIG.PROXY || LS.get("proxy",""),
-  fieldMap:null, filterSuffix:null,
   crop:null, commodity:null, markets:[], user:LS.get("user",null),
   market:null, recs:[], variety:"ALL", range:"1Y", charts:{}
 };
@@ -420,81 +395,34 @@ const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":
 const inr = n=>n==null||isNaN(n)?"—":"₹"+Math.round(n).toLocaleString("en-IN");
 const DAY = 86400000;
 
-/* ====== Data access ====== */
-const normKey = k=>String(k).toLowerCase().replace(/_x0020_/g,"_").replace(/\s+/g,"_");
+/* ====== Data access ======
+   Prices come from small JSON files in data/ that the daily GitHub Action
+   (scripts/update_prices.py) refreshes from AGMARKNET / data.gov.in. */
 function parseDate(s){
   if(!s) return null; s=String(s).trim();
   let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return Date.UTC(+m[1],m[2]-1,+m[3]);
   m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/); if(m) return Date.UTC(+m[3],m[2]-1,+m[1]);
-  const d=Date.parse(s); return isNaN(d)?null:d;
-}
-function normRec(r){
-  const o={}; for(const k in r) o[normKey(k)]=r[k];
-  return {state:o.state,district:o.district,market:o.market,commodity:o.commodity,variety:o.variety||"—",
-    date:parseDate(o.arrival_date),min:+o.min_price||null,max:+o.max_price||null,modal:+o.modal_price||null};
-}
-const memCache = new Map();
-function cacheGet(u){
-  if(memCache.has(u)) return memCache.get(u);
-  const c=LS.get("c:"+u,null); if(c && Date.now()-c.t < CONFIG.CACHE_HOURS*3600e3){memCache.set(u,c.v);return c.v}
   return null;
 }
-function cachePut(u,v){memCache.set(u,v); const s=JSON.stringify(v); if(s.length<400000) LS.set("c:"+u,{t:Date.now(),v});}
-
-async function rawGet({limit=1,offset=0,filters={}}){
-  if(S.demo) return DEMO.get({limit,offset,filters});
-  const u=new URL("https://api.data.gov.in/resource/"+CONFIG.RESOURCE);
-  u.searchParams.set("api-key",S.key); u.searchParams.set("format","json");
-  u.searchParams.set("limit",limit); u.searchParams.set("offset",offset);
-  for(const [k,v] of Object.entries(filters)){
-    const f=(S.fieldMap&&S.fieldMap[k])||k;
-    u.searchParams.set(`filters[${f}${S.filterSuffix||""}]`,v);
-  }
-  const href=u.toString(); const ck=href.replace(S.key,"KEY");
-  const hit=cacheGet(ck); if(hit) return hit;
-  const url = S.proxy ? S.proxy+encodeURIComponent(href) : href;
+const ver=()=>new Date().toISOString().slice(0,10);   // refresh files once a day
+async function getJSON(path){
   let res;
-  try{
-    const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),45000);
-    res=await fetch(url,{signal:ctl.signal}); clearTimeout(tm);
-  }catch(e){ throw new Error(S.proxy?"errNet":"errCors"); }
-  if(res.status===401||res.status===403) throw new Error("errKey");
+  try{ res=await fetch(CONFIG.DATA_URL+path+"?v="+ver()); }catch(e){ throw new Error("errNet"); }
+  if(res.status===404) throw new Error("errNoData");
   if(!res.ok) throw new Error("errNet");
-  const j=await res.json();
-  if(j.status && j.status!=="ok" && !j.records) throw new Error(/key/i.test(j.message||"")?"errKey":"errNet");
-  const out={total:+j.total||0,fields:(j.field||[]).map(f=>f.id),records:(j.records||[])};
-  cachePut(ck,out); return out;
+  return res.json();
 }
-
-async function init(){
-  if(S.fieldMap) return;
-  const r=await rawGet({limit:1});
-  const fm={}; const ids=r.fields.length?r.fields:Object.keys(r.records[0]||{});
-  for(const id of ids) fm[normKey(id)]=id;
-  S.fieldMap=fm;
-  // Detect filter syntax: plain field vs field.keyword
-  for(const suf of ["",".keyword"]){
-    S.filterSuffix=suf;
-    const f=await rawGet({limit:1,filters:{state:CONFIG.STATE}});
-    const st=f.records[0]&&normRec(f.records[0]).state;
-    if(f.total>0 && f.total<r.total && String(st).toLowerCase()===CONFIG.STATE.toLowerCase()) return;
-  }
-  S.filterSuffix="";
+let META=null;
+async function loadMeta(){
+  if(META) return META;
+  META = S.demo ? DEMO.meta() : await getJSON("meta.json");
+  if(!META.crops||!META.crops.length) throw new Error("errNoData");
+  if(META.updated) $("#updated").textContent=t("updatedOn")+" "+fmtDate(Date.parse(META.updated));
+  return META;
 }
-
-/* Fetch the most recent `max` records matching filters (records are appended over time, so read from the end). */
-async function fetchRecent(filters,max,onProgress){
-  const head=await rawGet({limit:1,filters});
-  const total=head.total; if(!total) return [];
-  const start=Math.max(0,total-max), PAGE=1000, offs=[];
-  for(let o=start;o<total;o+=PAGE) offs.push(o);
-  const out=[]; let done=0;
-  for(let i=0;i<offs.length;i+=3){
-    const batch=await Promise.all(offs.slice(i,i+3).map(o=>rawGet({limit:Math.min(PAGE,total-o),offset:o,filters})));
-    for(const b of batch) out.push(...b.records.map(normRec));
-    done+=batch.length; onProgress&&onProgress(done/offs.length);
-  }
-  return out.filter(r=>r.date&&r.modal>0);
+async function loadSeries(file){
+  const d = S.demo ? DEMO.series(file) : await getJSON(file);
+  return d.rows.map(r=>({date:parseDate(r[0]),variety:r[1],min:r[2],max:r[3],modal:r[4]})).filter(r=>r.date&&r.modal>0);
 }
 
 /* ====== Geo ====== */
@@ -567,22 +495,18 @@ function renderCrops(){
 }
 $("#moreCrops").onclick=async()=>{
   $("#moreWrap").classList.remove("hidden");
-  const sel=$("#moreSel"); sel.innerHTML=`<option>…</option>`;
+  const sel=$("#moreSel");
   try{
-    await init();
-    const recs=await fetchRecent({state:CONFIG.STATE},5000);
-    const names=[...new Set(recs.map(r=>r.commodity))].sort();
+    const meta=await loadMeta();
+    const names=meta.crops.map(c=>c.commodity).sort();
     sel.innerHTML=`<option value="">${esc(t("chooseCrop"))}…</option>`+names.map(n=>`<option>${esc(n)}</option>`).join("");
     sel.onchange=()=>{ if(sel.value) selectCrop({en:sel.value,kn:sel.value,names:[sel.value],kw:[]}); };
   }catch(e){showErr(e.message)}
 };
 
-async function resolveCommodity(c){
-  for(const n of c.names){ const r=await rawGet({limit:1,filters:{state:CONFIG.STATE,commodity:n}}); if(r.total>0) return n; }
-  if(!c.kw.length) return null;
-  const recs=await fetchRecent({state:CONFIG.STATE},5000);
-  const names=[...new Set(recs.map(r=>r.commodity))];
-  return names.find(n=>c.kw.some(k=>n.toLowerCase().includes(k)))||null;
+function findCrop(meta,c){
+  return meta.crops.find(x=>c.names.includes(x.commodity)) ||
+         meta.crops.find(x=>c.kw.some(k=>x.commodity.toLowerCase().includes(k))) || null;
 }
 
 async function selectCrop(c){
@@ -592,18 +516,16 @@ async function selectCrop(c){
   const st=$("#mandiStatus"); status(st,t("loadingCrop"));
   $("#mandiSel").disabled=true; $("#locBtn").disabled=true;
   try{
-    await init();
-    const name=await resolveCommodity(c);
-    if(!name){ status(st,t("noCrop"),false); return; }
-    S.commodity=name;
-    const recs=await fetchRecent({state:CONFIG.STATE,commodity:name},6000,p=>status(st,t("loadingCrop")+" "+Math.round(p*100)+"%"));
-    S.markets=latestByMarket(recs).sort((a,b)=>a.market.localeCompare(b.market));
-    if(!S.markets.length){ status(st,t("noCrop"),false); return; }
+    const meta=await loadMeta();
+    const mc=findCrop(meta,c);
+    if(!mc){ status(st,t("noCrop"),false); return; }
+    S.commodity=mc.commodity;
+    S.markets=mc.markets.map(m=>({market:m.market,district:m.district,file:m.file,date:parseDate(m.last),modal:m.modal,count:m.rows,geo:locate(m.market,m.district)}))
+      .sort((a,b)=>a.market.localeCompare(b.market));
     st.classList.add("hidden");
     renderMandiSelect();
     $("#mandiSel").disabled=false; $("#locBtn").disabled=false;
     $("#mandiCard").scrollIntoView({behavior:"smooth",block:"start"});
-    // Auto-pick: nearest if we know location, else last used mandi
     if(S.user) pickNearest();
     else { const last=LS.get("market",null); if(last && S.markets.some(m=>m.market===last)) selectMarket(last); }
   }catch(e){ st.classList.add("hidden"); showErr(e.message); }
@@ -642,7 +564,8 @@ async function selectMarket(name){
   const st=$("#mandiStatus"); const prev=st.textContent;
   status(st,t("loadingHist"));
   try{
-    S.recs=await fetchRecent({state:CONFIG.STATE,commodity:S.commodity,market:name},15000,p=>status(st,t("loadingHist")+" "+Math.round(p*100)+"%"));
+    const mk=S.markets.find(m=>m.market===name);
+    S.recs=await loadSeries(mk.file);
     if(prev && !/%|…/.test(prev)) status(st,prev,false); else st.classList.add("hidden");
     if(!S.recs.length){status(st,t("noData"),false);return}
     $("#results").classList.remove("hidden");
@@ -884,17 +807,6 @@ function renderNearby(){
   document.querySelectorAll("#nearbyTable tr.clickable").forEach(tr=>tr.onclick=()=>selectMarket(tr.dataset.m));
 }
 
-/* ====== Settings / setup ====== */
-function openSetup(){ $("#setup").classList.remove("hidden"); $("#keyIn").value=S.key; $("#proxyIn").value=S.proxy; $("#setup").scrollIntoView({behavior:"smooth"}); }
-$("#openSettings").onclick=openSetup;
-$("#saveKey").onclick=()=>{
-  S.key=$("#keyIn").value.trim(); S.proxy=$("#proxyIn").value.trim();
-  LS.set("key",S.key); LS.set("proxy",S.proxy); S.fieldMap=null; memCache.clear();
-  if(location.hash==="#demo"){history.replaceState(null,"",location.pathname)}
-  S.demo=false; $("#demoBanner").classList.add("hidden"); $("#setup").classList.add("hidden"); showErr(null);
-};
-$("#tryDemo").onclick=()=>{location.hash="demo";location.reload()};
-
 /* ====== DEMO data (only with #demo in the URL; clearly labelled, not real prices) ====== */
 const DEMO=(()=>{
   let rows=null;
@@ -927,17 +839,20 @@ const DEMO=(()=>{
     const pd=s=>{const [d,m,y]=s.split("/");return y+m+d};
     rows.sort((a,b)=>pd(a.Arrival_Date).localeCompare(pd(b.Arrival_Date)));  // real feed is appended day by day
   }
-  return {get({limit,offset,filters}){
-    if(!rows) build();
-    const map={state:"State",district:"District",market:"Market",commodity:"Commodity",variety:"Variety"};
-    const f=rows.filter(r=>Object.entries(filters).every(([k,v])=>r[map[k]||k]===v));
-    return new Promise(res=>setTimeout(()=>res({total:f.length,fields:["State","District","Market","Commodity","Variety","Grade","Arrival_Date","Min_Price","Max_Price","Modal_Price"],records:f.slice(offset,offset+limit)}),120));
-  }};
+  const iso=s=>{const [d,m,y]=s.split("/");return `${y}-${m}-${d}`};
+  return {
+    meta(){ if(!rows) build(); const by={};
+      for(const r of rows){const c=by[r.Commodity]??={commodity:r.Commodity,markets:{}};const m=c.markets[r.Market]??={market:r.Market,district:r.District,file:r.Commodity+"|"+r.Market,first:iso(r.Arrival_Date),rows:0,vals:{}};
+        m.rows++; const d=iso(r.Arrival_Date); if(!m.last||d>m.last){m.last=d;m.vals=[]} if(d===m.last)m.vals.push(+r.Modal_Price);}
+      return {updated:new Date().toISOString(),crops:Object.values(by).map(c=>({commodity:c.commodity,markets:Object.values(c.markets).map(m=>({...m,modal:median(m.vals)}))}))};
+    },
+    series(file){ if(!rows) build(); const [c,m]=file.split("|");
+      return {rows:rows.filter(r=>r.Commodity===c&&r.Market===m).map(r=>[iso(r.Arrival_Date),r.Variety,+r.Min_Price,+r.Max_Price,+r.Modal_Price])}; }
+  };
 })();
 
 /* ====== Boot ====== */
 if(S.demo){ $("#demoBanner").classList.remove("hidden"); }
-else if(!S.key){ openSetup(); }
 applyLang();
 </script>
 </body>
